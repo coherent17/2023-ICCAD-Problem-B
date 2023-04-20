@@ -76,7 +76,7 @@ void Data::showData(){
     for(int i = 0; i < NumTechnologies; i++){
         cout << "Tech <techName> <libCellCount>: " << i+1 << " " << technologyList[i].libCellCount << endl;
         for(int j = 1; j <= technologyList[i].libCellCount; j++){
-            cout << "\t" << "LibCell <libCellName> <libCellSizeX> <libCellSizeY> <pinCount>: " << j << " " << technologyList[i].libCellList[j].libCellSizeX << " " << technologyList[i].libCellList[j].libCellSizeY << " " << technologyList[i].libCellList[j].pinCount << endl;
+            cout << "\t" << "LibCell <libCellName> <isMacro> <libCellSizeX> <libCellSizeY> <pinCount>: " << j << " " << technologyList[i].libCellList[j].isMacro << " " << technologyList[i].libCellList[j].libCellSizeX << " " << technologyList[i].libCellList[j].libCellSizeY << " " << technologyList[i].libCellList[j].pinCount << endl;
             for(int k = 1; k <= technologyList[i].libCellList[j].pinCount; k++){
                 cout << "\t\tPin <pinName> <pinLocationX> <pinLocationY>: " << k << " " << technologyList[i].libCellList[j].PinList[k].pinLocationX << " " << technologyList[i].libCellList[j].PinList[k].pinLocationY << endl;
             }

@@ -1,8 +1,29 @@
-#include "inc/Data.h"
-
+#include "inc/Technology.h"
+#include "inc/Die.h"
 
 int main(int argc, char *argv[]){
-    Data d(*(argv + 1));
-    d.showData();
+
+    if(argc != 3){
+        printf("usage: %s <input.txt> <output.txt>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    //read the technoology info
+    ifstream fin(*(argv + 1));
+    Technology T(fin);
+    T.showData();
+
+    //read the die info, Dies[0] = top die, Dies[1] = bottom die
+    Die *Dies = new Die[2];
+    DieParser(fin, Dies, &T.technologyList[0], &T.technologyList[1]);
+
+    cout << "Top Die" << endl;
+    cout << Dies[0] << endl;
+
+    cout << "Bottom Die" << endl;
+    cout << Dies[1] << endl;
+
+
+    delete []Dies;
     return 0;
 }

@@ -1,7 +1,8 @@
-#include "../inc/Data.h"
+#include "../inc/Technology.h"
 
 Pin::Pin(){
-
+    pinLocationX = 0;
+    pinLocationY = 0;
 }
 
 Pin::~Pin(){
@@ -9,7 +10,11 @@ Pin::~Pin(){
 }
 
 LibCell::LibCell(){
-
+    isMacro = false;
+    libCellSizeX = 0;
+    libCellSizeY = 0;
+    pinCount = 0;
+    PinList = nullptr;
 }
 
 LibCell::~LibCell(){
@@ -24,19 +29,18 @@ Tech::~Tech(){
     delete []libCellList;
 }
 
-Data::Data(char *file_name){
-    ifstream fin(file_name);
+Technology::Technology(ifstream &fin){
     string line;
     getline(fin, line);
     stringstream ss(line);
     
-    ss >> line >> NumTechnologies;
+    ss >> line >> technologyCount;
     ss.str("");
-    technologyList = new Tech[NumTechnologies];
+    technologyList = new Tech[technologyCount];
 
 
     // Read technology
-    for(int i = 0; i < NumTechnologies; i++){
+    for(int i = 0; i < technologyCount; i++){
         getline(fin, line);
         ss.str(line);
         ss >> line >> line >> technologyList[i].libCellCount;
@@ -65,20 +69,21 @@ Data::Data(char *file_name){
             }
         }
     }
+    getline(fin, line);
 }
 
-Data::~Data(){
+Technology::~Technology(){
     delete []technologyList;
 }
 
-void Data::showData(){
-    cout << "\nNumTechnologies <technologyCount>: " << NumTechnologies << endl << endl;
-    for(int i = 0; i < NumTechnologies; i++){
-        cout << "Tech <techName> <libCellCount>: " << i+1 << " " << technologyList[i].libCellCount << endl;
+void Technology::showData(){
+    cout << "\nNumTechnologies <technologyCount>: " << technologyCount << endl << endl;
+    for(int i = 0; i < technologyCount; i++){
+        cout << "Tech <techName> <libCellCount>: " << (i == 0 ? "TA" : "TB") << " " << technologyList[i].libCellCount << endl;
         for(int j = 1; j <= technologyList[i].libCellCount; j++){
-            cout << "\t" << "LibCell <libCellName> <isMacro> <libCellSizeX> <libCellSizeY> <pinCount>: " << j << " " << technologyList[i].libCellList[j].isMacro << " " << technologyList[i].libCellList[j].libCellSizeX << " " << technologyList[i].libCellList[j].libCellSizeY << " " << technologyList[i].libCellList[j].pinCount << endl;
+            cout << "\t" << "LibCell <isMacro> <libCellName> <libCellSizeX> <libCellSizeY> <pinCount>: " << (technologyList[i].libCellList[j].isMacro == 1 ? "Y" : "N") << " MC" << j << " " << technologyList[i].libCellList[j].libCellSizeX << " " << technologyList[i].libCellList[j].libCellSizeY << " " << technologyList[i].libCellList[j].pinCount << endl;
             for(int k = 1; k <= technologyList[i].libCellList[j].pinCount; k++){
-                cout << "\t\tPin <pinName> <pinLocationX> <pinLocationY>: " << k << " " << technologyList[i].libCellList[j].PinList[k].pinLocationX << " " << technologyList[i].libCellList[j].PinList[k].pinLocationY << endl;
+                cout << "\t\tPin <pinName> <pinLocationX> <pinLocationY>: P" << k << " " << technologyList[i].libCellList[j].PinList[k].pinLocationX << " " << technologyList[i].libCellList[j].PinList[k].pinLocationY << endl;
             }
             cout << endl;
         }

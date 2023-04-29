@@ -2,6 +2,10 @@
 CC = g++
 CFLAGS = -g -Wall
 
+#Valgrind detect memory leak
+CHECKCC = valgrind
+CHECKFLAGS = --leak-check=full -s --show-leak-kinds=all --track-origins=yes 
+
 # Source files and object files
 SRCDIR = src
 OBJDIR = obj
@@ -23,7 +27,10 @@ $(OBJDIR):
 	mkdir $(OBJDIR)
 
 do:
-	./$(TARGET) /Testcase/ProblemB_case1.txt
+	./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
+
+check:
+	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET)

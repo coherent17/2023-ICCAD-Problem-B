@@ -86,6 +86,7 @@ void DieParser(ifstream &fin, Die *Dies, Tech *TAptr, Tech *TBptr){
             Dies[1].placementState[i][j] = UNOCCUPIED;
         }
     }
+    getline(fin, line);
 }
 
 ostream& operator<<(ostream& out, const Die &D){

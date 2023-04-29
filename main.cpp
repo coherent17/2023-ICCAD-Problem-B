@@ -1,5 +1,6 @@
 #include "inc/Technology.h"
 #include "inc/Die.h"
+#include "inc/Netlist.h"
 
 int main(int argc, char *argv[]){
 
@@ -23,6 +24,12 @@ int main(int argc, char *argv[]){
     cout << "Bottom Die" << endl;
     cout << Dies[1] << endl;
 
+
+    //read the terminal info
+    Terminal Term(fin);
+    cout << Term << endl;
+
+    //read NetList
 
     delete []Dies;
     return 0;

@@ -36,15 +36,17 @@ Technology::Technology(ifstream &fin){
     
     ss >> line >> technologyCount;
     ss.str("");
-    technologyList = new Tech[technologyCount];
+    technologyList = new Tech[technologyCount + 1];
 
 
     // Read technology
-    for(int i = 0; i < technologyCount; i++){
+    for(int i = 1; i <= technologyCount; i++){
         getline(fin, line);
         ss.str(line);
+        cout << "line:" << line << endl;
         ss >> line >> line >> technologyList[i].libCellCount;
         ss.str("");
+        cout << technologyList[i].libCellCount << endl;
         technologyList[i].libCellList = new LibCell[technologyList[i].libCellCount + 1];
 
         // Read LibCells of tech
@@ -78,8 +80,8 @@ Technology::~Technology(){
 
 void Technology::showData(){
     cout << "\nNumTechnologies <technologyCount>: " << technologyCount << endl << endl;
-    for(int i = 0; i < technologyCount; i++){
-        cout << "Tech <techName> <libCellCount>: " << (i == 0 ? "TA" : "TB") << " " << technologyList[i].libCellCount << endl;
+    for(int i = 1; i <= technologyCount; i++){
+        cout << "Tech <techName> <libCellCount>: " << (i == 1 ? "TA" : "TB") << " " << technologyList[i].libCellCount << endl;
         for(int j = 1; j <= technologyList[i].libCellCount; j++){
             cout << "\t" << "LibCell <isMacro> <libCellName> <libCellSizeX> <libCellSizeY> <pinCount>: " << (technologyList[i].libCellList[j].isMacro == 1 ? "Y" : "N") << " MC" << j << " " << technologyList[i].libCellList[j].libCellSizeX << " " << technologyList[i].libCellList[j].libCellSizeY << " " << technologyList[i].libCellList[j].pinCount << endl;
             for(int k = 1; k <= technologyList[i].libCellList[j].pinCount; k++){

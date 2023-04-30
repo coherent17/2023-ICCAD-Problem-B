@@ -14,23 +14,23 @@ int main(int argc, char *argv[]){
     Technology T(fin);
     T.showData();
 
-    //read the die info, Dies[0] = top die, Dies[1] = bottom die
-    Die *Dies = new Die[2];
-    DieParser(fin, Dies, &T.technologyList[0], &T.technologyList[1]);
+    // //read the die info, Dies[0] = top die, Dies[1] = bottom die
+    // Die *Dies = new Die[2];
+    // DieParser(fin, Dies, &T.technologyList[1], &T.technologyList[2]);
 
-    cout << "Top Die" << endl;
-    cout << Dies[0] << endl;
+    // cout << "Top Die" << endl;
+    // cout << Dies[0] << endl;
 
-    cout << "Bottom Die" << endl;
-    cout << Dies[1] << endl;
+    // cout << "Bottom Die" << endl;
+    // cout << Dies[1] << endl;
 
 
-    //read the terminal info
-    Terminal Term(fin);
-    cout << Term << endl;
+    // //read the terminal info
+    // Terminal Term(fin);
+    // cout << Term << endl;
 
     //read NetList
 
-    delete []Dies;
+    //delete []Dies;
     return 0;
 }

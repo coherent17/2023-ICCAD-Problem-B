@@ -26,11 +26,14 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 $(OBJDIR):
 	mkdir $(OBJDIR)
 
-do:
+do1:
 	./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
 
+do2:
+	./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt
+
 check:
-	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
+	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET)

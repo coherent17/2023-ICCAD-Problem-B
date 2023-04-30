@@ -12,7 +12,7 @@ Die::~Die(){
 }
 
 
-void DieParser(ifstream &fin, Die *Dies, Tech *TAptr, Tech *TBptr){
+void DieParser(ifstream &fin, Die *Dies, Technology& T){
     string line;
     getline(fin, line);
     stringstream ss(line);
@@ -56,13 +56,13 @@ void DieParser(ifstream &fin, Die *Dies, Tech *TAptr, Tech *TBptr){
     ss.str(line);
     ss >> line >> temp;
     ss.str("");
-    Dies[0].techptr = (temp == "TA") ? TAptr : TBptr;
+    Dies[0].techptr = (temp == "TA") ? &T.technologyList[1] : &T.technologyList[2];
 
     getline(fin, line);
     ss.str(line);
     ss >> line >> temp;
     ss.str("");
-    Dies[1].techptr = (temp == "TA") ? TAptr : TBptr;
+    Dies[1].techptr = (temp == "TA") ? &T.technologyList[1] : &T.technologyList[2];
 
     //initialize the placement state
     Dies[0].placementState = new bool *[Dies[0].rowHeight * Dies[0].repeatCount];

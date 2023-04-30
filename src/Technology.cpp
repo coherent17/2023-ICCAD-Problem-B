@@ -22,31 +22,28 @@ LibCell::~LibCell(){
 }
 
 Tech::Tech(){
-
+    libCellList = nullptr;
 }
 
 Tech::~Tech(){
-    delete []libCellList;
+    if(libCellList != nullptr)
+        delete []libCellList;
 }
 
 Technology::Technology(ifstream &fin){
     string line;
     getline(fin, line);
     stringstream ss(line);
-    
     ss >> line >> technologyCount;
     ss.str("");
     technologyList = new Tech[technologyCount + 1];
-
 
     // Read technology
     for(int i = 1; i <= technologyCount; i++){
         getline(fin, line);
         ss.str(line);
-        cout << "line:" << line << endl;
         ss >> line >> line >> technologyList[i].libCellCount;
         ss.str("");
-        cout << technologyList[i].libCellCount << endl;
         technologyList[i].libCellList = new LibCell[technologyList[i].libCellCount + 1];
 
         // Read LibCells of tech
@@ -69,13 +66,15 @@ Technology::Technology(ifstream &fin){
                 ss.str(line);
                 ss >> line >> line >> technologyList[i].libCellList[j].PinList[k].pinLocationX >> technologyList[i].libCellList[j].PinList[k].pinLocationY;
             }
+            ss.str("");
         }
     }
     getline(fin, line);
 }
 
 Technology::~Technology(){
-    delete []technologyList;
+    if(technologyList != nullptr)
+        delete []technologyList;
 }
 
 void Technology::showData(){

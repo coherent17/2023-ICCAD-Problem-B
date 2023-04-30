@@ -22,7 +22,7 @@ class Die{
         
         Die();
         ~Die();
-        friend void DieParser(ifstream& fin, Die *Dies, Tech *TAptr, Tech *TBptr);
+        friend void DieParser(ifstream& fin, Die *Dies, Technology& T);
         friend ostream& operator<<(ostream& out, const Die &D);
 };
 

@@ -1,6 +1,7 @@
 #include "inc/Technology.h"
 #include "inc/Die.h"
 #include "inc/Netlist.h"
+#include "inc/Partition.h"
 
 int main(int argc, char *argv[]){
 
@@ -30,7 +31,22 @@ int main(int argc, char *argv[]){
     cout << Term << endl;
 
     //read NetList
+    Instance *instances = nullptr;
+    int NumInstances;
+    InstanceParser(fin, &instances, &NumInstances);
+    cout << "NumInstances: " << NumInstances << endl;
+
+    for(int i = 1; i <= NumInstances; i++){
+        cout << "C" << i << " MC" <<  instances[i].LibCellIdx << endl;
+    }
+
+
+    Netlist N(fin);
+    N.showNetlist();
+
+    PartitionResult P(NumInstances, N.NumNets, N);
 
     delete []Dies;
+    delete []instances;
     return 0;
 }

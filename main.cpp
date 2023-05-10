@@ -12,6 +12,6 @@ int main(int argc, char *argv[]){
     D.Display();
     D.GeneratePartitionGraph();
     D.PartitionUntilFindSolution();
-
+    D.showPartitionResult();
     return 0;
 }

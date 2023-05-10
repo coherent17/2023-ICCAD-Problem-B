@@ -18,6 +18,7 @@ class LibCell{
         string libCellName;
         int libCellSizeX;
         int libCellSizeY;
+        int libCellArea;
         int pinCount;
         vector<Pin> Pins;
 };
@@ -41,6 +42,7 @@ class Die{
         int rowHeight;
         int repeatCount;
         string TechName;
+        Tech *DieTech;
 };
 //end of Die Data structure//
 
@@ -60,7 +62,10 @@ class Terminal{
 class Instance{
     public:
         string instName;
+        int instName_int;
         string libCellName;
+        int libCellName_int;
+        LibCell *LibCellptr;
 };
 
 class Net{
@@ -92,17 +97,22 @@ class Data{
         int netCount;
         vector<Net> Nets;
 
+
+        //partition result
+        vector<bool> PartitionResult;
+
         //constructor & destructor
-        Data(string filename);
+        Data(string);
         ~Data();
 
         //show the parser result
         void Display();
     
         //partition
+        bool Evaluation(string);
         void GeneratePartitionGraph();
         void PartitionUntilFindSolution();
-
+        void showPartitionResult();
 };
 
 #endif

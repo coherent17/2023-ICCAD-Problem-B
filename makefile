@@ -36,6 +36,6 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in
 
 .PHONY: all clean

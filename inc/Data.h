@@ -4,101 +4,90 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-//start of Tech Data structure//
-class Pin{
-    public:
-        string pinName;
-        int pinLocationX;
-        int pinLocationY;
+#define PARTITION_TOP 0
+#define PARTITION_BOTTOM 1
+
+struct Pin{
+    string pinName;
+    int pinLocationX;
+    int pinLocationY;
 };
 
-class LibCell{
-    public:
-        bool isMacro;
-        string libCellName;
-        int libCellSizeX;
-        int libCellSizeY;
-        int libCellArea;
-        int pinCount;
-        vector<Pin> Pins;
+struct LibCell{
+    bool isMacro;
+    string libCellName;
+    int libCellSizeX;
+    int libCellSizeY;
+    int libCellArea;
+    int pinCount;
+    vector<Pin> Pins;
 };
 
-class Tech{
-    public:
-        string techName;
-        int libCellCount;
-        vector<LibCell> LibCells;
+struct Tech{
+    string techName;
+    int libCellCount;
+    vector<LibCell> LibCells;
 };
 
-//end of Tech Data structure//
-
-//start of Die Data structure//
-class Die{
-    public:
-        int upperRightX;
-        int upperRightY;
-        int util;
-        int rowLength;
-        int rowHeight;
-        int repeatCount;
-        string TechName;
-        Tech *DieTech;
-};
-//end of Die Data structure//
-
-
-//start of Terminal Data structure//
-class Terminal{
-    public:
-        int sizeX;
-        int sizeY;
-        int spacing;
-        int val;
-};
-//end of Terminal Data structure//
-
-
-//start of Netlist Data structure//
-class Instance{
-    public:
-        string instName;
-        int instName_int;
-        string libCellName;
-        int libCellName_int;
-        LibCell *LibCellptr;
+struct Die{
+    int upperRightX;
+    int upperRightY;
+    int util;
+    int rowLength;
+    int rowHeight;
+    int repeatCount;
+    string TechName;
+    Tech *DieTech;
 };
 
-class Net{
-    public:
-        string netName;
-        int numPins;
-        vector<string> instName;
-        vector<string> libPinName;
+struct Terminal{
+    int sizeX;
+    int sizeY;
+    int spacing;
+    int val;
 };
 
-//end of Netlist Data structure//
+struct Instance{
+    string instName;
+    int instName_int;
+    string libCellName;
+    int libCellName_int;
+    LibCell *LibCellptr;
+};
+
+struct Net{
+    string netName;
+    int numPins;
+    vector<string> instName;
+    vector<string> libPinName;
+};
+
 
 class Data{
+    private:
+        //helper function used in constructor
+        void readTechnologyInfo(ifstream&);
+        void readDieInfo(ifstream&);
+        void readTerminalInfo(ifstream&);
+        void readInstanceInfo(ifstream&);
+        void readNetlistInfo(ifstream&);
+
+        //helper function used in partition
+        void Partition(string input_filename, int UBfactor, bool *isValidPartition);
+        bool Evaluation(string);
+
     public:
-        //tech data structure
+        //raw data
         int technologyCount;
         vector<Tech> Techs;
-
-        //Die data structure
         Die TopDie;
         Die BottomDie;
-
-        //Hybrid-Bonding Terminal data structure
         Terminal HybridTerminal;
-
-        //Netlist Data Structure
         int instanceCount;
         vector<Instance> Instances;
         int netCount;
         vector<Net> Nets;
 
-
-        //partition result
         vector<bool> PartitionResult;
 
         //constructor & destructor
@@ -109,7 +98,7 @@ class Data{
         void Display();
     
         //partition
-        bool Evaluation(string);
+        
         void GeneratePartitionGraph();
         void PartitionUntilFindSolution();
         void showPartitionResult();

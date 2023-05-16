@@ -1,6 +1,6 @@
 # Compiler and linker settings
 CC = g++
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -O3
 
 #Valgrind detect memory leak
 CHECKCC = valgrind
@@ -18,7 +18,7 @@ TARGET = CADB
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) main.cpp $^ -o $@ -lpthread
+	$(CC) $(CFLAGS) main.cpp $^ -o $@ -lpthread
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -32,10 +32,13 @@ do1:
 do2:
 	./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt
 
+do3:
+	./$(TARGET) Testcase/ProblemB_case3.txt Testcase/ProblemB_case3_result.txt
+
 check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
 
 .PHONY: all clean

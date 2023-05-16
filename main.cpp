@@ -1,5 +1,7 @@
 #include "inc/Data.h"
 
+#define DEBUG 0
+
 int main(int argc, char *argv[]){
 
     if(argc != 3){
@@ -9,7 +11,8 @@ int main(int argc, char *argv[]){
 
     //read the technoology info
     Data D(*(argv + 1));
-    D.Display();
+    if(DEBUG)
+        D.Display();
     D.GeneratePartitionGraph();
     D.PartitionUntilFindSolution();
     D.showPartitionResult();

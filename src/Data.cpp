@@ -264,8 +264,32 @@ void Data::GeneratePartitionGraph(){
         fprintf(shmetisInput, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
     }
     fclose(shmetisInput);
+
+
 }
 
+void Data::GenerateFixPart(){
+    FILE *FixPart = fopen("FixPart.hgr", "w");
+    bool fixPartition = 1;
+    bool normal = 0;
+    for(int i = 0; i < instanceCount; i++){
+        if(Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro){
+            fprintf(FixPart, "%d\n", fixPartition);
+            fixPartition = !fixPartition;
+        }
+        else{
+            float randomRate = 0.3;
+            if(rand() % 100 / 100.0 < randomRate){
+                fprintf(FixPart, "%d\n", normal);
+                normal = !normal;
+            }
+            else
+                fprintf(FixPart, "%d\n", -1);
+        }
+            
+    }
+    fclose(FixPart);
+}
 
 //unweighted graph
 // void Data::GeneratePartitionGraph(){
@@ -314,7 +338,7 @@ bool Data::Evaluation(string filename){
 
 void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition){
     system("chmod +x lib/hmetis/shmetis");
-    string command = "./lib/hmetis/shmetis " + input_filename + " 2 " + to_string(UBfactor) + " > " + "/dev/null";
+    string command = "./lib/hmetis/shmetis " + input_filename + " FixPart.hgr" + " 2 " + to_string(UBfactor) + " > " + "/dev/null";
     cout << command << endl;
     system(command.c_str());
     *isValidPartition = Evaluation(input_filename + ".part.2");
@@ -333,6 +357,7 @@ void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition
 void Data::PartitionUntilFindSolution(){
     string input_filename = "Netlist.hgr";
     bool isValidPartition = false;
+    GenerateFixPart();
     //do 10 times balance partition
     for(int i = 0; i < 10; i++){
         Partition(input_filename, 5, &isValidPartition);
@@ -340,8 +365,9 @@ void Data::PartitionUntilFindSolution(){
     }
 
     if(!isValidPartition){
-        for(int i = 0; i < 30; i++){
-            int randomOffset = rand() % 3 - 1;  //generate the random number between -2 ~ 2
+        for(int i = 0; i < 60; i++){
+            GenerateFixPart();
+            int randomOffset = rand() % 5;  //generate the random number between -2 ~ 2
             Partition(input_filename, 5 + randomOffset, &isValidPartition);
             if(isValidPartition) break;
         }

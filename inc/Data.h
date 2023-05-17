@@ -100,6 +100,7 @@ class Data{
         //partition
         
         void GeneratePartitionGraph();
+        void GenerateFixPart();
         void PartitionUntilFindSolution();
         void showPartitionResult();
 };

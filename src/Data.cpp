@@ -54,17 +54,18 @@ void Data::readDieInfo(ifstream& fin){
     BottomDie.upperRightY = upperRightY;
     getline(fin, line);
     getline(fin, line);
+    line += " ";                //testcase bug!!!!!!!!!!
     ss.str(line);
     int UtilTop, UtilBottom;
     ss >> line >> UtilTop;
     ss.str("");
     TopDie.util = UtilTop;
     getline(fin, line);
-    cout << "line = " << line << endl;
+    line += " ";                //testcase bug!!!!!!!!!!
+
     ss.str(line);
     ss >> line >> UtilBottom;
     BottomDie.util = UtilBottom;
-    cout << UtilTop << " " << UtilBottom << endl;
     ss.str("");
     getline(fin, line);
     getline(fin, line);
@@ -235,23 +236,6 @@ void Data::Display(){
     }
 }
 
-
-//weighted hyperedge
-// void Data::GeneratePartitionGraph(){
-//     FILE *shmetisInput = fopen("Netlist.hgr", "w");
-// 	fprintf(shmetisInput, "%d %d %d\n", netCount, instanceCount, 1);
-
-//     for(int i = 0; i < netCount; i++){
-//         for(int j = 0; j < Nets[i].numPins; j++){
-//             string temp = Nets[i].instName[j];
-//             replace(temp.begin(), temp.end(), 'C', ' ');
-//             fprintf(shmetisInput, "%d ", stoi(temp));
-//         }
-//         fprintf(shmetisInput, "%d\n", Nets[i].numPins);
-//     }
-//     fclose(shmetisInput);
-// }
-
 //weighted vertices
 void Data::GeneratePartitionGraph(){
     FILE *shmetisInput = fopen("Netlist.hgr", "w");
@@ -282,7 +266,7 @@ void Data::GenerateFixPart(){
             fixPartition = !fixPartition;
         }
         else{
-            float randomRate = 0.3;
+            float randomRate = 0.27;
             if(rand() % 100 / 100.0 < randomRate){
                 fprintf(FixPart, "%d\n", normal);
                 normal = !normal;
@@ -294,22 +278,6 @@ void Data::GenerateFixPart(){
     }
     fclose(FixPart);
 }
-
-//unweighted graph
-// void Data::GeneratePartitionGraph(){
-//     FILE *shmetisInput = fopen("Netlist.hgr", "w");
-// 	fprintf(shmetisInput, "%d %d\n", netCount, instanceCount);
-
-//     for(int i = 0; i < netCount; i++){
-//         for(int j = 0; j < Nets[i].numPins; j++){
-//             string temp = Nets[i].instName[j];
-//             replace(temp.begin(), temp.end(), 'C', ' ');
-//             fprintf(shmetisInput, "%d ", stoi(temp));
-//         }
-//         fprintf(shmetisInput, "\n");
-//     }
-//     fclose(shmetisInput);
-// }
 
 bool Data::Evaluation(string filename){
     cout << "Evaluation Part" << endl;
@@ -324,10 +292,6 @@ bool Data::Evaluation(string filename){
     int partition;
     for(int i = 0; i < instanceCount; i++){
         fin >> partition;
-        cout << "i = " << i << " partition = " << partition << "idx = " << Instances[i].libCellName_int - 1 << endl;
-        cout << TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea << endl;
-        cout << BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea << endl;
-        
         if(partition == PARTITION_TOP){
             TopDieArea += TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
             if(TopDieArea > TopDieMaxSize) ret = false;
@@ -338,7 +302,7 @@ bool Data::Evaluation(string filename){
         }
     }
     fin.close();
-    cout << "----------------------------------------------------" << endl;
+    cout << "-------------Partition Evaluation-------------------" << endl;
     cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << double(TopDieArea) / double(TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount) * 100 << endl;
     cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << double(BottomDieArea) / double(BottomDie.rowLength  * BottomDie.rowHeight * BottomDie.repeatCount) * 100 << endl;
     cout << "----------------------------------------------------" << endl;
@@ -346,6 +310,7 @@ bool Data::Evaluation(string filename){
 }
 
 void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition){
+    GenerateFixPart();
     system("chmod +x lib/hmetis/shmetis");
     string command = "./lib/hmetis/shmetis " + input_filename + " FixPart.hgr" + " 2 " + to_string(UBfactor) + " > " + "/dev/null";
     cout << command << endl;
@@ -364,89 +329,16 @@ void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition
 }
 
 void Data::PartitionUntilFindSolution(){
-    cout << TopDie.DieTech->techName << endl;
-    cout << BottomDie.DieTech->techName << endl;
     string input_filename = "Netlist.hgr";
     bool isValidPartition = false;
-    GenerateFixPart();
-    //do 10 times balance partition
-    for(int i = 0; i < 10; i++){
-        Partition(input_filename, 5, &isValidPartition);
+
+    for(int i = 0; i < 60; i++){
+        int randomOffset = rand() % 5;  //generate the random number between -2 ~ 2
+        Partition(input_filename, 5 + randomOffset, &isValidPartition);
         if(isValidPartition) break;
     }
 
-    if(!isValidPartition){
-        for(int i = 0; i < 60; i++){
-            GenerateFixPart();
-            int randomOffset = rand() % 5;  //generate the random number between -2 ~ 2
-            Partition(input_filename, 5 + randomOffset, &isValidPartition);
-            if(isValidPartition) break;
-        }
-    }
-
 }
-
-//helper functions used in PartitionUntilFindSolution
-// void Partition(string input_filename, int UBfactor, Data *data, bool *ret){
-//     system("chmod +x lib/hmetis/shmetis");
-//     string command = "./lib/hmetis/shmetis " + input_filename + " 2 " + to_string(UBfactor) + " > " + "/dev/null";
-//     system(command.c_str());
-//     cout<<"finish partition"<<endl;
-//     *ret = data->Evaluation(input_filename + ".part.2");
-// }
-
-// void Data::PartitionUntilFindSolution(){
-//     string input_filename = "Netlist.hgr";
-//     vector<string> input_filenames = {"1.in", "2.in", "3.in", "4.in"};
-//     vector<string> output_filenames = {"1.out", "2.out", "3.out", "4.out"};
-
-//     for (int i = 0; i < 4; i++) {
-//         string command = "cp " + input_filename + " " + input_filenames[i];
-//         system(command.c_str());
-//     } 
-//     bool checkBox[4] = {0};
-//     while(1){
-//         vector<thread> threads;
-//         // vector<bool> checkBox(4, false);
-//         for (int i = 0; i < 4; i++) {
-//             int UBfactor = 5;
-//             threads.emplace_back(Partition, input_filenames[i], UBfactor, output_filenames[i], this, &checkBox[i]);
-//         }
-//         for (auto& thread : threads) {
-//             thread.join();
-//         }
-
-
-//         if(checkBox[0] || checkBox[1] || checkBox[2] || checkBox[3])
-//             break;
-//     }
-
-//     //parse the correct partition
-//     int idx;
-//     for(int i = 0; i < 4; i++){
-//         if(checkBox[i]){
-//             idx = i;
-//             break;
-//         }
-//     }
-
-//     // read file
-//     ifstream fin(input_filenames[idx] + ".part.2");
-    
-//     int cur;
-//     int cur_idx = 0;
-//     while(fin >> cur){
-        
-//         if(cur){
-//             Instances[cur_idx].LibCellptr = &TopDie.DieTech->LibCells[Instances[cur_idx].libCellName_int - 1];
-//         }
-//         else{
-//             Instances[cur_idx].LibCellptr = &BottomDie.DieTech->LibCells[Instances[cur_idx].libCellName_int - 1];   
-//         }
-//         PartitionResult.push_back(cur);
-//     }
-//     fin.close();
-// }
 
 void Data::showPartitionResult(){
     for(size_t i = 0; i < PartitionResult.size(); i++){

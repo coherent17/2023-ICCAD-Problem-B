@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
         D.Display();
     // D.GeneratePartitionGraph();
     // D.PartitionUntilFindSolution();
-    // cout << D.Evaluation("Netlist.hgr.part.2") << endl;
-    // D.showPartitionResult();
+    // if(DEBUG)
+    //     D.showPartitionResult();
     return 0;
 }

@@ -55,11 +55,16 @@ void Data::readDieInfo(ifstream& fin){
     getline(fin, line);
     getline(fin, line);
     ss.str(line);
-    ss >> line >> TopDie.util;
+    int UtilTop, UtilBottom;
+    ss >> line >> UtilTop;
     ss.str("");
+    TopDie.util = UtilTop;
     getline(fin, line);
+    cout << "line = " << line << endl;
     ss.str(line);
-    ss >> line >> BottomDie.util;
+    ss >> line >> UtilBottom;
+    BottomDie.util = UtilBottom;
+    cout << UtilTop << " " << UtilBottom << endl;
     ss.str("");
     getline(fin, line);
     getline(fin, line);
@@ -264,8 +269,7 @@ void Data::GeneratePartitionGraph(){
         fprintf(shmetisInput, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
     }
     fclose(shmetisInput);
-
-
+    GenerateFixPart();
 }
 
 void Data::GenerateFixPart(){
@@ -308,6 +312,7 @@ void Data::GenerateFixPart(){
 // }
 
 bool Data::Evaluation(string filename){
+    cout << "Evaluation Part" << endl;
     bool ret = true;
     unsigned long long int TopDieMaxSize = TopDie.util * TopDie.rowLength / 100 * TopDie.rowHeight * TopDie.repeatCount;
     unsigned long long int BottomDieMaxSize = BottomDie.util * BottomDie.rowLength / 100 * BottomDie.rowHeight * BottomDie.repeatCount;
@@ -319,6 +324,10 @@ bool Data::Evaluation(string filename){
     int partition;
     for(int i = 0; i < instanceCount; i++){
         fin >> partition;
+        cout << "i = " << i << " partition = " << partition << "idx = " << Instances[i].libCellName_int - 1 << endl;
+        cout << TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea << endl;
+        cout << BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea << endl;
+        
         if(partition == PARTITION_TOP){
             TopDieArea += TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
             if(TopDieArea > TopDieMaxSize) ret = false;
@@ -355,6 +364,8 @@ void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition
 }
 
 void Data::PartitionUntilFindSolution(){
+    cout << TopDie.DieTech->techName << endl;
+    cout << BottomDie.DieTech->techName << endl;
     string input_filename = "Netlist.hgr";
     bool isValidPartition = false;
     GenerateFixPart();

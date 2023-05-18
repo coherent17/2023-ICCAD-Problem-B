@@ -1,6 +1,6 @@
 #include "inc/Data.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 int main(int argc, char *argv[]){
 
@@ -13,8 +13,9 @@ int main(int argc, char *argv[]){
     Data D(*(argv + 1));
     if(DEBUG)
         D.Display();
-    D.GeneratePartitionGraph();
-    D.PartitionUntilFindSolution();
-    D.showPartitionResult();
+    // D.GeneratePartitionGraph();
+    // D.PartitionUntilFindSolution();
+    // cout << D.Evaluation("Netlist.hgr.part.2") << endl;
+    // D.showPartitionResult();
     return 0;
 }

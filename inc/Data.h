@@ -74,7 +74,7 @@ class Data{
 
         //helper function used in partition
         void Partition(string input_filename, int UBfactor, bool *isValidPartition);
-        bool Evaluation(string);
+        
 
     public:
         //raw data
@@ -103,6 +103,7 @@ class Data{
         void GenerateFixPart();
         void PartitionUntilFindSolution();
         void showPartitionResult();
+        bool Evaluation(string);
 };
 
 #endif

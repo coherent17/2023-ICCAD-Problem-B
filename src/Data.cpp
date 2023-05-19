@@ -35,14 +35,13 @@ void Data::readTechnologyInfo(ifstream& fin){
         }
         Techs.push_back(tempTech);
     }
+    getline(fin, line);
 }
 
 void Data::readDieInfo(ifstream& fin){
-        //start to read the die info
+    //start to read the die info
     string line;
     stringstream ss;
-    getline(fin, line);
-    ss.str("");
     getline(fin, line);
     ss.str(line);
     int upperRightX, upperRightY;
@@ -54,14 +53,12 @@ void Data::readDieInfo(ifstream& fin){
     BottomDie.upperRightY = upperRightY;
     getline(fin, line);
     getline(fin, line);
-    line += " ";                //testcase bug!!!!!!!!!!
     ss.str(line);
     int UtilTop, UtilBottom;
     ss >> line >> UtilTop;
     ss.str("");
     TopDie.util = UtilTop;
     getline(fin, line);
-    line += " ";                //testcase bug!!!!!!!!!!
 
     ss.str(line);
     ss >> line >> UtilBottom;

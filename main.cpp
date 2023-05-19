@@ -11,8 +11,8 @@ int main(int argc, char *argv[]){
 
     //read the technoology info
     Data D(*(argv + 1));
-    if(DEBUG)
-        D.Display();
+    // if(DEBUG)
+    //     D.Display();
     // D.GeneratePartitionGraph();
     // D.PartitionUntilFindSolution();
     // if(DEBUG)

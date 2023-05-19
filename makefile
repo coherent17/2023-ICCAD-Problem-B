@@ -23,8 +23,14 @@ $(TARGET): $(OBJS)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR):
-	mkdir $(OBJDIR)
+getCase:
+	mkdir -p Testcase
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case2.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4.txt
+
+.PHONY: getCase
 
 do1:
 	./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
@@ -42,6 +48,6 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case3.txt Testcase/ProblemB_case3_result.txt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
+	rm -rf obj/*.o $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
 
 .PHONY: all clean

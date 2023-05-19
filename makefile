@@ -1,6 +1,6 @@
 # Compiler and linker settings
 CC = g++
-CFLAGS = -g -Wall -O3
+CFLAGS = -g -Wall
 
 #Valgrind detect memory leak
 CHECKCC = valgrind

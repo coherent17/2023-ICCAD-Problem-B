@@ -7,6 +7,10 @@ using namespace std;
 #define PARTITION_TOP 0
 #define PARTITION_BOTTOM 1
 
+#define WEIGHTED_GRAPH_FMT 10
+#define DEBUG 1
+#define DETAIL_DISPLAY 0
+
 struct Pin{
     string pinName;
     int pinLocationX;

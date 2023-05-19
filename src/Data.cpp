@@ -188,17 +188,20 @@ Data::~Data(){
 
 void Data::Display(){
     cout << "\nNumTechnologies <technologyCount>: " << technologyCount << endl << endl;
-    for(int i = 0; i < technologyCount; i++){
-        cout << "Tech <techName> <libCellCount>: " << Techs[i].techName << " " << Techs[i].libCellCount << endl;
-        for(int j = 0; j < Techs[i].libCellCount; j++){
-            cout << "\t" << "LibCell <isMacro> <libCellName> <libCellSizeX> <libCellSizeY> <libCellArea> <pinCount>: " << (Techs[i].LibCells[j].isMacro == 1 ? "Y " : "N ") << Techs[i].LibCells[j].libCellName << " " << Techs[i].LibCells[j].libCellSizeX << " " << Techs[i].LibCells[j].libCellSizeY << " " << Techs[i].LibCells[j].libCellArea << " " << Techs[i].LibCells[j].pinCount << endl;
-            for(int k = 0; k < Techs[i].LibCells[j].pinCount; k++){
-                cout << "\t\tPin <pinName> <pinLocationX> <pinLocationY>: " << Techs[i].LibCells[j].Pins[k].pinName << " " << Techs[i].LibCells[j].Pins[k].pinLocationX << " " << Techs[i].LibCells[j].Pins[k].pinLocationY << endl;
+    if(DETAIL_DISPLAY){
+        for(int i = 0; i < technologyCount; i++){
+            cout << "Tech <techName> <libCellCount>: " << Techs[i].techName << " " << Techs[i].libCellCount << endl;
+            for(int j = 0; j < Techs[i].libCellCount; j++){
+                cout << "\t" << "LibCell <isMacro> <libCellName> <libCellSizeX> <libCellSizeY> <libCellArea> <pinCount>: " << (Techs[i].LibCells[j].isMacro == 1 ? "Y " : "N ") << Techs[i].LibCells[j].libCellName << " " << Techs[i].LibCells[j].libCellSizeX << " " << Techs[i].LibCells[j].libCellSizeY << " " << Techs[i].LibCells[j].libCellArea << " " << Techs[i].LibCells[j].pinCount << endl;
+                for(int k = 0; k < Techs[i].LibCells[j].pinCount; k++){
+                    cout << "\t\tPin <pinName> <pinLocationX> <pinLocationY>: " << Techs[i].LibCells[j].Pins[k].pinName << " " << Techs[i].LibCells[j].Pins[k].pinLocationX << " " << Techs[i].LibCells[j].Pins[k].pinLocationY << endl;
+                }
+                cout << endl;
             }
-            cout << endl;
+            cout << endl << endl;
         }
-        cout << endl << endl;
     }
+
     cout << endl;
 
     cout << "TopDie:" << endl;
@@ -218,71 +221,134 @@ void Data::Display(){
     cout << "\tTerminalSpacing <spacing>: " << HybridTerminal.spacing << endl;
     cout << "\tTerminalCost <val>: " << HybridTerminal.val << endl << endl;
 
-    cout << "Instances: " << instanceCount << endl;
-    for(int i = 0; i < instanceCount; i++){
-        cout << "Inst " << Instances[i].instName << " " << Instances[i].libCellName << endl;
-    }
-    cout << endl;
-
-    cout << "Nets: " << netCount << endl;
-    for(int i = 0; i < netCount; i++){
-        cout << "Net " <<  Nets[i].netName << " " <<  Nets[i].numPins << endl;
-        for(int j = 0; j < Nets[i].numPins; j++){
-            cout << "\tPin " << Nets[i].instName[j] << "/" << Nets[i].libPinName[j] << endl;
+    if(DETAIL_DISPLAY){
+        cout << "Instances: " << instanceCount << endl;
+        for(int i = 0; i < instanceCount; i++){
+            cout << "Inst " << Instances[i].instName << " " << Instances[i].libCellName << endl;
         }
         cout << endl;
+
+        cout << "Nets: " << netCount << endl;
+        for(int i = 0; i < netCount; i++){
+            cout << "Net " <<  Nets[i].netName << " " <<  Nets[i].numPins << endl;
+            for(int j = 0; j < Nets[i].numPins; j++){
+                cout << "\tPin " << Nets[i].instName[j] << "/" << Nets[i].libPinName[j] << endl;
+            }
+            cout << endl;
+        }
     }
 }
 
-//weighted vertices
+/*
+brief about this function:
+Generate 2 input files for shmetis
+*   1. unweighted vertices graph
+*   2. weighted vertices graph, with fmt = 10
+*/
 void Data::GeneratePartitionGraph(){
-    FILE *shmetisInput = fopen("Netlist.hgr", "w");
-	fprintf(shmetisInput, "%d %d %d\n", netCount, instanceCount, 10);
 
+    //generate unweighted vertices graph (no fmt)
+    FILE *unweighted_vertices_graph = fopen("Unweighted_Graph.hgr", "w");
+
+    //first line contains # of net & # of instance.
+    fprintf(unweighted_vertices_graph, "%d %d\n", netCount, instanceCount);
+
+    //Following # of net lines contains the cell connected by the net
+    for(int i = 0; i < netCount; i++){
+        for(int j = 0; j < Nets[i].numPins; j++){
+            string temp = Nets[i].instName[j];
+            replace(temp.begin(), temp.end(), 'C', ' ');    //C1 -> 1
+            fprintf(unweighted_vertices_graph, "%d ", stoi(temp));
+        }
+        fprintf(unweighted_vertices_graph, "\n");
+    }
+    fclose(unweighted_vertices_graph);
+    //end of unweighted vertices graph
+
+
+    //generate weighted vertices graph (fmt = 10)
+    FILE *weighted_vertices_graph = fopen("Weighted_Graph.hgr", "w");
+
+    //first line contains # of net & # of instance and fmt = 10
+	fprintf(weighted_vertices_graph, "%d %d %d\n", netCount, instanceCount, WEIGHTED_GRAPH_FMT);
+
+    //Following # of net lines contains the cell connected by the net
     for(int i = 0; i < netCount; i++){
         for(int j = 0; j < Nets[i].numPins; j++){
             string temp = Nets[i].instName[j];
             replace(temp.begin(), temp.end(), 'C', ' ');
-            fprintf(shmetisInput, "%d ", stoi(temp));
+            fprintf(weighted_vertices_graph, "%d ", stoi(temp));
         }
-        fprintf(shmetisInput, "\n");
+        fprintf(weighted_vertices_graph, "\n");
     }
+
+    //Following # of instance lines contains the cell weight
     for(int i = 0; i < instanceCount; i++){
-        fprintf(shmetisInput, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
+        fprintf(weighted_vertices_graph, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
     }
-    fclose(shmetisInput);
+    fclose(weighted_vertices_graph);
+    //end of weighted vertices graph
 }
 
+/*
+brief about this function:
+Generate 1 input file for shmetis
+[2023/5/19 version 1.0]:
+Distribute the Macro onto the top die and bottom die
+Make sure the remaining area at top die and bottom die are almost equal
+*/
 void Data::GenerateFixPart(){
+    //calculate how many area at both dies
+    double TopDieMaxSize = TopDie.util/100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
+    double BottomDieMaxSize = BottomDie.util/100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
+    double TopDieRemainArea = TopDieMaxSize;
+    double BottomDieRemainArea = BottomDieMaxSize;
+
     FILE *FixPart = fopen("FixPart.hgr", "w");
-    bool fixPartition = 1;
-    bool normal = 0;
     for(int i = 0; i < instanceCount; i++){
-        if(Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro){
-            fprintf(FixPart, "%d\n", fixPartition);
-            fixPartition = !fixPartition;
+        bool isMacro = Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro;
+
+        //macro placement by myself
+        if(isMacro){
+            if(BottomDieRemainArea > TopDieRemainArea){
+                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                fprintf(FixPart, "%d\n", 1);
+            }
+            else{
+                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                fprintf(FixPart, "%d\n", 0);
+            }
         }
         else{
-            float randomRate = 0.27;
-            if(rand() % 100 / 100.0 < randomRate){
-                fprintf(FixPart, "%d\n", normal);
-                normal = !normal;
-            }
-            else
+            // //standard cell partition by shmetis
+            // double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+            // double compare = static_cast<double>(std::rand()) / RAND_MAX;
+            // if(compare < rand_portition){
+            //     if(BottomDieRemainArea > TopDieRemainArea){
+            //         BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+            //         fprintf(FixPart, "%d\n", 1);
+            //     }
+            //     else{
+            //         TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+            //         fprintf(FixPart, "%d\n", 0);
+            //     }
+            // }
+            // else
                 fprintf(FixPart, "%d\n", -1);
-        }
             
+        }
     }
-    fclose(FixPart);
+    cout << "Top remain: " << TopDieRemainArea << endl;
+    cout << "Bottom remain: " << BottomDieRemainArea << endl;
 }
 
 bool Data::Evaluation(string filename){
-    cout << "Evaluation Part" << endl;
+    cout << "Evaluation Part: " + filename << endl;
     bool ret = true;
-    unsigned long long int TopDieMaxSize = TopDie.util * TopDie.rowLength / 100 * TopDie.rowHeight * TopDie.repeatCount;
-    unsigned long long int BottomDieMaxSize = BottomDie.util * BottomDie.rowLength / 100 * BottomDie.rowHeight * BottomDie.repeatCount;
-    unsigned long long int TopDieArea = 0;
-    unsigned long long int BottomDieArea = 0;
+    double TopDieMaxSize = TopDie.util / 100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
+    double BottomDieMaxSize = BottomDie.util / 100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
+    double TopDieArea = 0;
+    double BottomDieArea = 0;
 
     ifstream fin(filename);
 
@@ -326,7 +392,7 @@ void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition
 }
 
 void Data::PartitionUntilFindSolution(){
-    string input_filename = "Netlist.hgr";
+    string input_filename = "Weighted_Graph.hgr";
     bool isValidPartition = false;
 
     for(int i = 0; i < 60; i++){

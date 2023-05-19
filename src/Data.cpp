@@ -6,14 +6,14 @@ void Data::readTechnologyInfo(ifstream& fin){
     stringstream ss(line);
 
     ss >> line >> technologyCount;
-    ss.str("");
+    ss.clear();
 
     for(int i = 0; i < technologyCount; i++){
         Tech tempTech;
         getline(fin, line);
         ss.str(line);
         ss >> line >> tempTech.techName >> tempTech.libCellCount;
-        ss.str("");
+        ss.clear();
         for(int j = 0; j < tempTech.libCellCount; j++){
             LibCell tempLibCell;
             getline(fin, line);
@@ -21,14 +21,14 @@ void Data::readTechnologyInfo(ifstream& fin){
             char isMacro;
             ss >> line >> isMacro >> tempLibCell.libCellName >> tempLibCell.libCellSizeX >> tempLibCell.libCellSizeY >> tempLibCell.pinCount;
             tempLibCell.libCellArea = tempLibCell.libCellSizeX * tempLibCell.libCellSizeY;
-            ss.str("");
+            ss.clear();
             tempLibCell.isMacro = (isMacro == 'Y');
             for(int k = 0; k < tempLibCell.pinCount; k++){
                 Pin tempPin;
                 getline(fin, line);
                 ss.str(line);
                 ss >> line >> tempPin.pinName >> tempPin.pinLocationX >> tempPin.pinLocationY;
-                ss.str("");
+                ss.clear();
                 tempLibCell.Pins.push_back(tempPin);
             }
             tempTech.LibCells.push_back(tempLibCell);
@@ -46,7 +46,7 @@ void Data::readDieInfo(ifstream& fin){
     ss.str(line);
     int upperRightX, upperRightY;
     ss >> line >> line >> line >> upperRightX >> upperRightY;
-    ss.str("");
+    ss.clear();
     TopDie.upperRightX = upperRightX;
     TopDie.upperRightY = upperRightY;
     BottomDie.upperRightX = upperRightX;
@@ -56,28 +56,29 @@ void Data::readDieInfo(ifstream& fin){
     ss.str(line);
     int UtilTop, UtilBottom;
     ss >> line >> UtilTop;
-    ss.str("");
+    ss.clear();
+    ss.clear();
     TopDie.util = UtilTop;
     getline(fin, line);
 
     ss.str(line);
     ss >> line >> UtilBottom;
     BottomDie.util = UtilBottom;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
     getline(fin, line);
     ss.str(line);
     ss >> line >> line >> line >> TopDie.rowLength >> TopDie.rowHeight >> TopDie.repeatCount;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
     ss.str(line);
     ss >> line >> line >> line >> BottomDie.rowLength >> BottomDie.rowHeight >> BottomDie.repeatCount;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
     getline(fin, line);
     ss.str(line);
     ss >> line >> TopDie.TechName;
-    ss.str("");
+    ss.clear();
     for(size_t i = 0; i < Techs.size(); i++){
         if(Techs[i].techName == TopDie.TechName){
             TopDie.DieTech = &Techs[i];
@@ -88,7 +89,7 @@ void Data::readDieInfo(ifstream& fin){
     getline(fin, line);
     ss.str(line);
     ss >> line >> BottomDie.TechName;
-    ss.str("");
+    ss.clear();
     for(size_t i = 0; i < Techs.size(); i++){
         if(Techs[i].techName == BottomDie.TechName){
             BottomDie.DieTech = &Techs[i];
@@ -104,15 +105,15 @@ void Data::readTerminalInfo(ifstream& fin){
     getline(fin, line);
     ss.str(line);
     ss >> line >> HybridTerminal.sizeX >> HybridTerminal.sizeY;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
     ss.str(line);
     ss >> line >> HybridTerminal.spacing;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
     ss.str(line);
     ss >> line >> HybridTerminal.val;
-    ss.str("");
+    ss.clear();
     getline(fin, line);
 }
 
@@ -122,13 +123,13 @@ void Data::readInstanceInfo(ifstream& fin){
     getline(fin, line);
     ss.str(line);
     ss >> line >> instanceCount;
-    ss.str("");
+    ss.clear();
     for(int i = 0; i < instanceCount; i++){
         Instance temp;
         getline(fin, line);
         ss.str(line);
         ss >> line >> temp.instName >> temp.libCellName;
-        ss.str("");
+        ss.clear();
         string n1 = temp.instName;
         replace(n1.begin(), n1.end(), 'C', ' ');
         stringstream ssn1(n1);
@@ -150,13 +151,13 @@ void Data::readNetlistInfo(ifstream& fin){
     getline(fin, line);
     ss.str(line);
     ss >> line >> netCount;
-    ss.str("");
+    ss.clear();
     for(int i = 0; i < netCount; i++){
         Net temp;
         getline(fin, line);
         ss.str(line);
         ss >> line >> temp.netName >> temp.numPins;
-        ss.str("");
+        ss.clear();
         for(int j = 0; j < temp.numPins; j++){
             getline(fin, line);
             replace(line.begin(), line.end(), '/', ' ');
@@ -250,7 +251,6 @@ void Data::GeneratePartitionGraph(){
         fprintf(shmetisInput, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
     }
     fclose(shmetisInput);
-    GenerateFixPart();
 }
 
 void Data::GenerateFixPart(){

@@ -17,6 +17,9 @@ TARGET = CADB
 
 all: $(TARGET)
 
+$(OBJDIR):
+	mkdir $(OBJDIR)
+
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) main.cpp $^ -o $@
 
@@ -48,6 +51,6 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case3.txt Testcase/ProblemB_case3_result.txt
 
 clean:
-	rm -rf obj/*.o $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
 
 .PHONY: all clean

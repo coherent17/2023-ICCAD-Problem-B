@@ -9,13 +9,14 @@ int main(int argc, char *argv[]){
         return EXIT_FAILURE;
     }
 
+    srand(time(NULL));
     //read the technoology info
     Data D(*(argv + 1));
-    // if(DEBUG)
-    //     D.Display();
-    // D.GeneratePartitionGraph();
-    // D.PartitionUntilFindSolution();
+    if(DEBUG)
+        D.Display();
+    D.GeneratePartitionGraph();
+    D.PartitionUntilFindSolution();
     // if(DEBUG)
     //     D.showPartitionResult();
-    return 0;
+    // return 0;
 }

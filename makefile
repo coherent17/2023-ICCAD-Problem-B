@@ -48,7 +48,7 @@ do4:
 	./$(TARGET) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt
 
 check:
-	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case3.txt Testcase/ProblemB_case3_result.txt
+	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*

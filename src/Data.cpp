@@ -237,6 +237,17 @@ void Data::Display(){
             cout << endl;
         }
     }
+
+    //calculate the area if all place in 1 partition
+    double topTotalArea = 0;
+    double bottomTotalArea = 0;
+    for(int i = 0; i < instanceCount; i++){
+        topTotalArea += TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        bottomTotalArea += BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+    }
+    //in experiment, there exist some cells need to fix on 1 side, since the difference of their area in different tech is large
+    cout << "TopTotalArea: " << topTotalArea << endl;
+    cout << "BottomTotalArea: " << bottomTotalArea << endl;
 }
 
 /*
@@ -320,24 +331,25 @@ void Data::GenerateFixPart(){
             }
         }
         else{
-            // //standard cell partition by shmetis
-            // double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
-            // double compare = static_cast<double>(std::rand()) / RAND_MAX;
-            // if(compare < rand_portition){
-            //     if(BottomDieRemainArea > TopDieRemainArea){
-            //         BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-            //         fprintf(FixPart, "%d\n", 1);
-            //     }
-            //     else{
-            //         TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-            //         fprintf(FixPart, "%d\n", 0);
-            //     }
-            // }
-            // else
+            //standard cell partition by shmetis
+            double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+            double compare = static_cast<double>(std::rand()) / RAND_MAX;
+            if(compare < rand_portition){
+                if(BottomDieRemainArea > TopDieRemainArea){
+                    BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                    fprintf(FixPart, "%d\n", 1);
+                }
+                else{
+                    TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                    fprintf(FixPart, "%d\n", 0);
+                }
+            }
+            else
                 fprintf(FixPart, "%d\n", -1);
             
         }
     }
+    fclose(FixPart);
     cout << "Top remain: " << TopDieRemainArea << endl;
     cout << "Bottom remain: " << BottomDieRemainArea << endl;
 }

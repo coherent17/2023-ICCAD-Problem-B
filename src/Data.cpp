@@ -295,7 +295,13 @@ void Data::GeneratePartitionGraph(){
 
     //Following # of instance lines contains the cell weight
     for(int i = 0; i < instanceCount; i++){
-        fprintf(weighted_vertices_graph, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
+        //if there exists 2 technology, then the weight should be the average of the area of the instances
+        if(technologyCount == 2){
+            fprintf(weighted_vertices_graph, "%d\n", (Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea + Techs[1].LibCells[Instances[i].libCellName_int - 1].libCellArea) / 2);
+        }
+        else{
+            fprintf(weighted_vertices_graph, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
+        }
     }
     fclose(weighted_vertices_graph);
     //end of weighted vertices graph
@@ -305,19 +311,86 @@ void Data::GeneratePartitionGraph(){
 brief about this function:
 Generate 1 input file for shmetis
 [2023/5/19 version 1.0]:
-Distribute the Macro onto the top die and bottom die
-Make sure the remaining area at top die and bottom die are almost equal
+Distribute the Macro onto the top die and bottom die in the following priority:
+    1. the area of the cell in different tech [only if the technology of top die and bottom die are different]
+    2. the remain area in both dies
+
+Make sure the remaining area at top die and bottom die are almost equal after assign the fix part of the instances
+
+@Property check@:
+    If the instance in TA is macro, then in TB it must be macro.
 */
 void Data::GenerateFixPart(){
-    //calculate how many area at both dies
-    double TopDieMaxSize = TopDie.util/100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
-    double BottomDieMaxSize = BottomDie.util/100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
+    //calculate how many area at both dies (divide 100.o first or overflow encounter in big case)
+    double TopDieMaxSize = TopDie.util / 100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
+    double BottomDieMaxSize = BottomDie.util / 100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
     double TopDieRemainArea = TopDieMaxSize;
     double BottomDieRemainArea = BottomDieMaxSize;
 
     FILE *FixPart = fopen("FixPart.hgr", "w");
     for(int i = 0; i < instanceCount; i++){
         bool isMacro = Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro;
+
+        // if(isMacro){
+        //     //check where to place the macro is better
+        //     if(technologyCount == 2){
+        //         bool placeWhere = 0;
+        //         placeWhere = TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea < BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea ? PARTITION_TOP : PARTITION_BOTTOM;
+        //         if(placeWhere == PARTITION_TOP){
+        //             if(TopDieRemainArea > TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
+        //                 TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //                 fprintf(FixPart, "%d\n", 0);
+        //             }
+        //             else{
+        //                 BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //                 fprintf(FixPart, "%d\n", 1);
+        //             }
+        //         }
+        //         else{
+        //             if(BottomDieRemainArea > BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
+        //                 BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //                 fprintf(FixPart, "%d\n", 1);
+        //             }
+        //             else{
+        //                 TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //                 fprintf(FixPart, "%d\n", 0);
+        //             }
+
+        //         }
+        //     }
+
+        //     //there exist only 1 tech
+        //     else{
+        //         if(BottomDieRemainArea > TopDieRemainArea){
+        //             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //             fprintf(FixPart, "%d\n", 1);
+        //         }
+        //         else{
+        //             TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //             fprintf(FixPart, "%d\n", 0);
+        //         }
+        //     }
+
+        // }
+        // else{
+        //     //standard cell partition by shmetis
+        //     double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+        //     double compare = static_cast<double>(std::rand()) / RAND_MAX;
+        //     if(compare < rand_portition){
+        //         if(BottomDieRemainArea > TopDieRemainArea){
+        //             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //             fprintf(FixPart, "%d\n", 1);
+        //         }
+        //         else{
+        //             TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        //             fprintf(FixPart, "%d\n", 0);
+        //         }
+        //     }
+        //     else
+        //         fprintf(FixPart, "%d\n", -1);
+            
+        // }
+
 
         //macro placement by myself
         if(isMacro){

@@ -7,9 +7,19 @@ using namespace std;
 #define PARTITION_TOP 0
 #define PARTITION_BOTTOM 1
 
+//the fmt used in create shmetis input file
 #define WEIGHTED_GRAPH_FMT 10
+
+//print the things
 #define DEBUG 1
+
+//if 0 print important result of testcase only
 #define DETAIL_DISPLAY 0
+
+//different mode used in partition the graph
+#define WEIGHTED            0b00000001
+#define FIX_MACRO           0b00000010
+#define FIX_MACRO_WITH      0b00000100
 
 struct Pin{
     string pinName;

@@ -297,7 +297,7 @@ void Data::GeneratePartitionGraph(){
     for(int i = 0; i < instanceCount; i++){
         //if there exists 2 technology, then the weight should be the average of the area of the instances
         if(technologyCount == 2){
-            fprintf(weighted_vertices_graph, "%d\n", (Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea + Techs[1].LibCells[Instances[i].libCellName_int - 1].libCellArea) / 2);
+            fprintf(weighted_vertices_graph, "%d\n", (Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea + Techs[1].LibCells[Instances[i].libCellName_int - 1].libCellArea) / 2 / 10);
         }
         else{
             fprintf(weighted_vertices_graph, "%d\n", Techs[0].LibCells[Instances[i].libCellName_int - 1].libCellArea);
@@ -320,94 +320,18 @@ Make sure the remaining area at top die and bottom die are almost equal after as
 @Property check@:
     If the instance in TA is macro, then in TB it must be macro.
 */
-void Data::GenerateFixPart(){
+void Data::GenerateFixPart(int8_t option){
     //calculate how many area at both dies (divide 100.o first or overflow encounter in big case)
     double TopDieMaxSize = TopDie.util / 100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
     double BottomDieMaxSize = BottomDie.util / 100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
     double TopDieRemainArea = TopDieMaxSize;
     double BottomDieRemainArea = BottomDieMaxSize;
 
-    FILE *FixPart = fopen("FixPart.hgr", "w");
-    for(int i = 0; i < instanceCount; i++){
-        bool isMacro = Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro;
-
-        // if(isMacro){
-        //     //check where to place the macro is better
-        //     if(technologyCount == 2){
-        //         bool placeWhere = 0;
-        //         placeWhere = TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea < BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea ? PARTITION_TOP : PARTITION_BOTTOM;
-        //         if(placeWhere == PARTITION_TOP){
-        //             if(TopDieRemainArea > TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
-        //                 TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //                 fprintf(FixPart, "%d\n", 0);
-        //             }
-        //             else{
-        //                 BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //                 fprintf(FixPart, "%d\n", 1);
-        //             }
-        //         }
-        //         else{
-        //             if(BottomDieRemainArea > BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
-        //                 BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //                 fprintf(FixPart, "%d\n", 1);
-        //             }
-        //             else{
-        //                 TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //                 fprintf(FixPart, "%d\n", 0);
-        //             }
-
-        //         }
-        //     }
-
-        //     //there exist only 1 tech
-        //     else{
-        //         if(BottomDieRemainArea > TopDieRemainArea){
-        //             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //             fprintf(FixPart, "%d\n", 1);
-        //         }
-        //         else{
-        //             TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //             fprintf(FixPart, "%d\n", 0);
-        //         }
-        //     }
-
-        // }
-        // else{
-        //     //standard cell partition by shmetis
-        //     double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
-        //     double compare = static_cast<double>(std::rand()) / RAND_MAX;
-        //     if(compare < rand_portition){
-        //         if(BottomDieRemainArea > TopDieRemainArea){
-        //             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //             fprintf(FixPart, "%d\n", 1);
-        //         }
-        //         else{
-        //             TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-        //             fprintf(FixPart, "%d\n", 0);
-        //         }
-        //     }
-        //     else
-        //         fprintf(FixPart, "%d\n", -1);
-            
-        // }
-
-
-        //macro placement by myself
-        if(isMacro){
-            if(BottomDieRemainArea > TopDieRemainArea){
-                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                fprintf(FixPart, "%d\n", 1);
-            }
-            else{
-                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                fprintf(FixPart, "%d\n", 0);
-            }
-        }
-        else{
-            //standard cell partition by shmetis
-            double rand_portition = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
-            double compare = static_cast<double>(std::rand()) / RAND_MAX;
-            if(compare < rand_portition){
+    if(!(option & GREEDY_FIX)){
+        FILE *FixPart = fopen("FixPart.hgr", "w");
+        for(int i = 0; i < instanceCount; i++){
+            bool isMacro = Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro;
+            if(isMacro){
                 if(BottomDieRemainArea > TopDieRemainArea){
                     BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
                     fprintf(FixPart, "%d\n", 1);
@@ -417,14 +341,104 @@ void Data::GenerateFixPart(){
                     fprintf(FixPart, "%d\n", 0);
                 }
             }
-            else
-                fprintf(FixPart, "%d\n", -1);
-            
+            else{
+                if(option & STD_CELL_RANDOM_ASSIGN){
+                    double Rand_Prob = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+                    double Cmp = static_cast<double>(std::rand()) / RAND_MAX;
+                    if(Cmp < Rand_Prob){
+                        if(BottomDieRemainArea > TopDieRemainArea){
+                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 1);
+                        }
+                        else{
+                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 0);
+                        }
+                    }
+                    else{
+                        fprintf(FixPart, "%d\n", -1);
+                    }
+                }
+                else{
+                    fprintf(FixPart, "%d\n", -1);
+                }
+            }
         }
+        fclose(FixPart);
     }
-    fclose(FixPart);
-    cout << "Top remain: " << TopDieRemainArea << endl;
-    cout << "Bottom remain: " << BottomDieRemainArea << endl;
+    //perform some greedy choose
+    else if(option & GREEDY_FIX){
+        FILE *FixPart = fopen("FixPart.hgr", "w");
+        for(int i = 0; i < instanceCount; i++){
+            bool isMacro = Techs[0].LibCells[Instances[i].libCellName_int - 1].isMacro;
+            if(isMacro){
+                //if there exist 2 technology
+                if(technologyCount == 2){
+                    bool placeWhere = 0;
+                    placeWhere = TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea < BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea ? PARTITION_TOP : PARTITION_BOTTOM;
+                    if(placeWhere == PARTITION_TOP){
+                        if(TopDieRemainArea > TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
+                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 0);
+                        }
+                        else{
+                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 1);
+                        }
+                    }
+
+                    else{
+                        if(BottomDieRemainArea > BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
+                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 1);
+                        }
+                        else{
+                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 0);
+                        }
+                    }
+                }
+                //there exists only 1 technology
+                else{
+                    if(BottomDieRemainArea > TopDieRemainArea){
+                        BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                        fprintf(FixPart, "%d\n", 1);
+                    }
+                    else{
+                        TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                        fprintf(FixPart, "%d\n", 0);
+                    }
+                }
+            }
+            //not macro
+            else{
+                if(option & STD_CELL_RANDOM_ASSIGN){
+                    double Rand_Prob = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+                    double Cmp = static_cast<double>(std::rand()) / RAND_MAX;
+                    if(Cmp < Rand_Prob){
+                        if(BottomDieRemainArea > TopDieRemainArea){
+                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 1);
+                        }
+                        else{
+                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                            fprintf(FixPart, "%d\n", 0);
+                        }
+                    }
+                    else{
+                        fprintf(FixPart, "%d\n", -1);
+                    }
+                }
+                else{
+                    fprintf(FixPart, "%d\n", -1);
+                }
+            }
+        }
+        fclose(FixPart);
+    }
+
+    else abort();
+    
 }
 
 bool Data::Evaluation(string filename){
@@ -442,30 +456,49 @@ bool Data::Evaluation(string filename){
         fin >> partition;
         if(partition == PARTITION_TOP){
             TopDieArea += TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-            if(TopDieArea > TopDieMaxSize) ret = false;
+            if(TopDieArea > TopDieMaxSize) ret = false;     //when releasing, here should add break
         }
         else{
             BottomDieArea += BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-            if(BottomDieArea > BottomDieMaxSize) ret = false;
+            if(BottomDieArea > BottomDieMaxSize) ret = false;   //when releasing, here should add break
         }
     }
     fin.close();
     cout << "-------------Partition Evaluation-------------------" << endl;
-    cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << double(TopDieArea) / double(TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount) * 100 << endl;
-    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << double(BottomDieArea) / double(BottomDie.rowLength  * BottomDie.rowHeight * BottomDie.repeatCount) * 100 << endl;
+    cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount) * 100.0 << endl;
+    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength  * BottomDie.rowHeight * BottomDie.repeatCount) * 100.0 << endl;
     cout << "----------------------------------------------------" << endl;
     return ret;
 }
 
-void Data::Partition(string input_filename, int UBfactor, bool *isValidPartition){
-    GenerateFixPart();
-    system("chmod +x lib/hmetis/shmetis");
-    string command = "./lib/hmetis/shmetis " + input_filename + " FixPart.hgr" + " 2 " + to_string(UBfactor) + " > " + "/dev/null";
-    cout << command << endl;
-    system(command.c_str());
-    *isValidPartition = Evaluation(input_filename + ".part.2");
+void Data::Partition(string input_filename, bool *isValidPartition, int8_t option){
 
+    //unweighted partition
+    if(!(option & WEIGHTED)){
+        system("./lib/hmetis/shmetis Unweighted_Graph.hgr 2 20 > /dev/null");
+    }
     
+    //weighted graph without fix part
+    else if((option & WEIGHTED) && !(option & FIX_PARTITION)){
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr 2 20 > /dev/null");
+    }
+
+    //weighted graph with fix partition generate by not considering greedy choice about the area
+    else if((option & WEIGHTED) && (option & FIX_PARTITION) && !(option & GREEDY_FIX)){
+        GenerateFixPart(option);
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 20 > /dev/null");
+    }
+
+    else if((option & WEIGHTED) && (option & FIX_PARTITION) && (option & GREEDY_FIX)){
+        GenerateFixPart(option);
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 5 > /dev/null");
+    }
+    else abort();   //there is no way to reach here
+
+    //evaluation whether this partition result is legal or not 
+    *isValidPartition = Evaluation(input_filename + ".part.2");
+    
+    // if the partition is legal -> copy to the vector
     if(*isValidPartition){
         ifstream fin(input_filename + ".part.2");
         int partition;
@@ -481,8 +514,8 @@ void Data::PartitionUntilFindSolution(){
     bool isValidPartition = false;
 
     for(int i = 0; i < 60; i++){
-        int randomOffset = rand() % 5;  //generate the random number between -2 ~ 2
-        Partition(input_filename, 5 + randomOffset, &isValidPartition);
+        cout << "Execution Partition " << i << endl;
+        Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
         if(isValidPartition) break;
     }
 

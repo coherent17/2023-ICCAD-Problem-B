@@ -17,9 +17,10 @@ using namespace std;
 #define DETAIL_DISPLAY 0
 
 //different mode used in partition the graph
-#define WEIGHTED            0b00000001
-#define FIX_MACRO           0b00000010
-#define FIX_MACRO_WITH      0b00000100
+#define WEIGHTED                0b00000001
+#define FIX_PARTITION           0b00000010
+#define GREEDY_FIX              0b00000100
+#define STD_CELL_RANDOM_ASSIGN  0b00001000
 
 struct Pin{
     string pinName;
@@ -86,10 +87,6 @@ class Data{
         void readInstanceInfo(ifstream&);
         void readNetlistInfo(ifstream&);
 
-        //helper function used in partition
-        void Partition(string input_filename, int UBfactor, bool *isValidPartition);
-        
-
     public:
         //raw data
         int technologyCount;
@@ -112,9 +109,9 @@ class Data{
         void Display();
     
         //partition
-        
         void GeneratePartitionGraph();
-        void GenerateFixPart();
+        void Partition(string input_filename, bool *isValidPartition, int8_t option);
+        void GenerateFixPart(int8_t option);
         void PartitionUntilFindSolution();
         void showPartitionResult();
         bool Evaluation(string);

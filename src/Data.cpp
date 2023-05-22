@@ -166,6 +166,7 @@ void Data::readNetlistInfo(ifstream& fin){
             ss >> line >> tempinstName >> templibPinName;
             temp.instName.push_back(tempinstName);
             temp.libPinName.push_back(templibPinName);
+            ss.clear();
         }
         Nets.push_back(temp);
     }

@@ -28,10 +28,10 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 
 getCase:
 	mkdir -p Testcase
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1_0522.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case2.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_0522.txt
 
 .PHONY: getCase
 

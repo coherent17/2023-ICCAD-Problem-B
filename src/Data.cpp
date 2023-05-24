@@ -466,8 +466,8 @@ bool Data::Evaluation(string filename){
     }
     fin.close();
     cout << "-------------Partition Evaluation-------------------" << endl;
-    cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount) * 100.0 << endl;
-    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength  * BottomDie.rowHeight * BottomDie.repeatCount) * 100.0 << endl;
+    cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength) / double(TopDie.rowHeight) / double(TopDie.repeatCount) * 100.0 << endl;
+    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength)  / double(BottomDie.rowHeight) / double(BottomDie.repeatCount) * 100.0 << endl;
     cout << "----------------------------------------------------" << endl;
     return ret;
 }

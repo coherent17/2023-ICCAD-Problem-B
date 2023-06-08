@@ -115,16 +115,6 @@ class Data{
         void PartitionUntilFindSolution();
         void showPartitionResult();
         bool Evaluation(string);
-        void LoadPartition();
-
-        // Placement
-        void Placement();
-        void makeNodesFile(string, int);
-        void makeNetsFile(string, int);
-        void makeWtsFile(string, int);
-        void makePlFile(string, int);
-        void makeSclFile(string, int);
-
 };
 
 #endif

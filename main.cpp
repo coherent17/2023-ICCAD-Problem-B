@@ -17,13 +17,7 @@ int main(int argc, char *argv[]){
     //make sure the executable permission is right
     system("chmod +x lib/hmetis/shmetis");
     D.PartitionUntilFindSolution();
-    if(DEBUG)
-        D.showPartitionResult();
-
-    D.LoadPartition();
-
-    // placement
-    D.Placement();
-
-    return 0;
+    // if(DEBUG)
+    //     D.showPartitionResult();
+    // return 0;
 }

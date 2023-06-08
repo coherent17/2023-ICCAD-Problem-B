@@ -516,7 +516,7 @@ void Data::PartitionUntilFindSolution(){
 
     for(int i = 0; i < 60; i++){
         cout << "Execution Partition " << i << endl;
-        Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
+        Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION  | GREEDY_FIX);
         if(isValidPartition) break;
     }
 
@@ -525,5 +525,18 @@ void Data::PartitionUntilFindSolution(){
 void Data::showPartitionResult(){
     for(size_t i = 0; i < PartitionResult.size(); i++){
         cout << PartitionResult[i] << endl;
+    }
+}
+
+void Data::LoadPartition(){
+    for(size_t i = 0; i < PartitionResult.size(); i++){
+        if(PartitionResult[i] == PARTITION_TOP){
+            Instances[i].LibCellptr = &(TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1]);
+        }
+        else if(PartitionResult[i] == PARTITION_BOTTOM){
+            Instances[i].LibCellptr = &(BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1]);
+        }
+        //never reach here
+        else abort();
     }
 }

@@ -51,6 +51,6 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log*
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log* placement/
 
 .PHONY: all clean

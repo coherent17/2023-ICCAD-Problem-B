@@ -527,3 +527,95 @@ void Data::showPartitionResult(){
         cout << PartitionResult[i] << endl;
     }
 }
+
+
+void Data::LoadPartition(){
+    for(size_t i = 0; i < PartitionResult.size(); i++){
+        if(PartitionResult[i] == PARTITION_TOP){
+            Instances[i].LibCellptr = &(TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1]);
+        }
+        else if(PartitionResult[i] == PARTITION_BOTTOM){
+            Instances[i].LibCellptr = &(BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1]);
+        }
+        //never reach here
+        else abort();
+    }
+}
+
+
+//***********************//
+//      Placement        //
+//***********************//
+// Description:
+// 1. transform data to GSRC/bookshelf format
+// 2. call NTUplacer
+// 3. read the result
+
+void Data::Placement(){
+    // create output directory
+    system("mkdir -p placement");
+    
+    int curDie = 0;
+
+    // input file names for ntuplacer in bookshelf format
+    string nodes_file = "./placement/iccad.nodes";
+    string nets_file = "./placement/iccad.nodes";
+    string wts_file = "./placement/iccad.wts";
+    string pl_file = "./placement/iccad.pl";
+    string scl_file = "./placement/iccad.scl";
+
+    cout<<"Instance Number : "<<instanceCount<<endl;
+    cout<<"Partitiol Result : "<<PartitionResult.size()<<endl;
+
+    // generat inputs file
+    makeNodesFile(nodes_file, curDie);
+    makeNetsFile(nets_file, curDie);
+    makeWtsFile(wts_file, curDie);
+    makePlFile(pl_file, curDie);
+    makeSclFile(scl_file, curDie);
+}
+
+void Data::makeNodesFile(string file_name, int side){
+    int NumNodes = 0;
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == side)
+            NumNodes++;
+    }
+
+    ofstream fout(file_name);
+
+    fout<<"NumNodes : "<<NumNodes<<endl;
+    fout<<"NumTerminals : 0"<<endl<<endl;
+
+    for(int i=0;i<instanceCount;i++){
+        cout<<i<<endl;
+        cout<<Instances.size()<<endl;
+        if(PartitionResult[i] == side){
+            cout<<"a"<<Instances[i].instName<<endl;
+            cout<<"libCellptr: "<<Instances[i].LibCellptr<<endl; 
+            cout<<"b"<<Instances[i].LibCellptr->libCellSizeX<<endl;
+            fout<<" "  <<Instances[i].instName<<" "
+                        <<Instances[i].LibCellptr->libCellSizeX<<" "
+                        <<Instances[i].LibCellptr->libCellSizeY<<endl;
+        }
+    }
+
+
+    fout.close();
+}
+
+void Data::makeNetsFile(string file_name, int side){
+
+}
+
+void Data::makeWtsFile(string file_name, int side){
+
+}
+
+void Data::makePlFile(string file_name, int side){
+
+}
+
+void Data::makeSclFile(string file_name, int side){
+
+}

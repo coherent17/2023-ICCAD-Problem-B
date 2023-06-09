@@ -476,18 +476,18 @@ void Data::Partition(string input_filename, bool *isValidPartition, int8_t optio
 
     //unweighted partition
     if(!(option & WEIGHTED)){
-        system("./lib/hmetis/shmetis Unweighted_Graph.hgr 2 20 > /dev/null");
+        system("./lib/hmetis/shmetis Unweighted_Graph.hgr 2 5 > /dev/null");
     }
     
     //weighted graph without fix part
     else if((option & WEIGHTED) && !(option & FIX_PARTITION)){
-        system("./lib/hmetis/shmetis Weighted_Graph.hgr 2 20 > /dev/null");
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr 2 5 > /dev/null");
     }
 
     //weighted graph with fix partition generate by not considering greedy choice about the area
     else if((option & WEIGHTED) && (option & FIX_PARTITION) && !(option & GREEDY_FIX)){
         GenerateFixPart(option);
-        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 20 > /dev/null");
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 5 > /dev/null");
     }
 
     else if((option & WEIGHTED) && (option & FIX_PARTITION) && (option & GREEDY_FIX)){
@@ -514,6 +514,13 @@ void Data::PartitionUntilFindSolution(){
     string input_filename = "Weighted_Graph.hgr";
     bool isValidPartition = false;
 
+    //perform the normal basic partition for case 1 remain for the condition of min cut
+    for(int i = 0; i < 5; i++){
+        Partition(input_filename, &isValidPartition, WEIGHTED);
+        if(isValidPartition) break;
+    }
+
+    //for case 2 and 3 is good
     for(int i = 0; i < 60; i++){
         cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);

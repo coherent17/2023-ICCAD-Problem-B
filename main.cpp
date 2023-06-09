@@ -21,5 +21,7 @@ int main(int argc, char *argv[]){
         D.showPartitionResult();
     
     D.LoadPartition();
+
+    D.Placement();
     return 0;
 }

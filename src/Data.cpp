@@ -516,7 +516,7 @@ void Data::PartitionUntilFindSolution(){
 
     for(int i = 0; i < 60; i++){
         cout << "Execution Partition " << i << endl;
-        Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION  | GREEDY_FIX);
+        Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
         if(isValidPartition) break;
     }
 
@@ -524,7 +524,7 @@ void Data::PartitionUntilFindSolution(){
 
 void Data::showPartitionResult(){
     for(size_t i = 0; i < PartitionResult.size(); i++){
-        cout << PartitionResult[i] << endl;
+        cout << "Instance : "<< i+1 << " is on "<<PartitionResult[i] << endl;
     }
 }
 
@@ -539,4 +539,195 @@ void Data::LoadPartition(){
         //never reach here
         else abort();
     }
+}
+
+//***********************//
+//      Placement        //
+//***********************//
+// Description:
+// 1. transform data to GSRC/bookshelf format
+// 2. call NTUplacer
+// 3. read the result
+
+void Data::Placement(){
+    // create output directory
+    system("mkdir -p placement");
+
+    int curDie = 0;
+
+    // input file names for ntuplacer in bookshelf format
+    string nodes_file = "./placement/iccad.nodes";
+    string nets_file = "./placement/iccad.nets";
+    string wts_file = "./placement/iccad.wts";
+    string pl_file = "./placement/iccad.pl";
+    string scl_file = "./placement/iccad.scl";
+
+    cout<<"Instance Number : "<<instanceCount<<endl;
+    cout<<"Partitiol Result : "<<PartitionResult.size()<<endl;
+
+    // generat inputs file
+    makeNodesFile(nodes_file, curDie);
+    makeNetsFile(nets_file, curDie);
+    makeWtsFile(wts_file, curDie);
+    makePlFile(pl_file, curDie);
+    makeSclFile(scl_file, curDie);
+
+    // generate aux file
+    ofstream fout("./placement/iccad.aux");
+    // fout << "RowBasedPlacement : "  << nodes_file << " " << nets_file << " " 
+    //                                 << wts_file << " " << pl_file << " " << scl_file << endl;
+    fout << "RowBasedPlacement : iccad.nodes iccad.nets iccad.wts iccad.pl iccad.scl" << endl;
+    // call ntuplacer
+    string placer_path = "./lib/ntuplace/ntuplace3";
+    string cmd = placer_path + " -aux ./placement/iccad.aux";
+    system(cmd.c_str());
+
+}
+
+void Data::makeNodesFile(string file_name, int side){
+    int NumNodes = 0;
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == side)
+            NumNodes++;
+    }
+
+    ofstream fout(file_name);
+    fout << "UCLA nodes 1.0" << endl << endl;
+    fout<<"NumNodes : "<<NumNodes<<endl;
+    fout<<"NumTerminals : 0"<<endl<<endl;
+
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == side){
+            fout<<" "  <<Instances[i].instName<<" "
+                        <<Instances[i].LibCellptr->libCellSizeX<<" "
+                        <<Instances[i].LibCellptr->libCellSizeY<<endl;
+        }
+    }
+
+
+    fout.close();
+}
+
+void Data::makeNetsFile(string file_name, int side){
+    ofstream fout(file_name);
+    fout << "UCLA nets 1.0" << endl << endl;
+    int pinCount = 0;
+    vector<int> numOfPin(netCount, 0);
+    for(int i=0;i<netCount;i++){
+        int curPinCount = 0;
+        for(int j=0;j<Nets[i].numPins;j++){
+            string name = Nets[i].instName[j];
+            // get instance index
+            // assume instance index = 1 to N
+            stringstream ss(name); 
+            char trash;
+            int instance_idx;
+            ss >> trash >> instance_idx;
+            instance_idx--;
+
+            if(PartitionResult[instance_idx] == side){ 
+                pinCount++;
+                curPinCount++;
+            }
+        }
+        numOfPin[i] = curPinCount;
+    }
+
+    fout << "NumNets : "<< netCount << endl;
+    fout << "NumPins : "<< pinCount << endl << endl;
+
+    for(int i=0;i<netCount;i++){
+        // assume all Net has numPins == numInstances
+        fout << "NetDegree : " << numOfPin[i] << endl;
+        for(int j=0;j<Nets[i].numPins;j++){
+            string name = Nets[i].instName[j];
+            // get instance index
+            // assume instance index = 1 to N
+            stringstream ss(name);
+            char trash;
+            int instance_idx;
+            ss >> trash >> instance_idx;
+            instance_idx--;
+
+            // if is not on the same die no need to do placement
+            if(PartitionResult[instance_idx] != side)
+                continue;
+            // get cell information
+            int w = Instances[instance_idx].LibCellptr->libCellSizeX;
+            int h = Instances[instance_idx].LibCellptr->libCellSizeY;
+
+            // get pin index;
+            // assume pin number start with 1 to N
+            stringstream zz(Nets[i].libPinName[j]);
+            int pin_idx;
+            zz >> trash >> pin_idx;
+            pin_idx--;
+
+            // get pin information
+            int x = Instances[instance_idx].LibCellptr->Pins[pin_idx].pinLocationX;
+            int y = Instances[instance_idx].LibCellptr->Pins[pin_idx].pinLocationY;
+
+            // get offset
+            double offset_x = x - w/2.0;
+            double offset_y = y - h/2.0;
+
+            // write back
+
+            fout << "\t" << name << " I : " << offset_x << " " << offset_y << endl;
+        }
+    }
+
+    fout.close();
+}
+
+void Data::makeWtsFile(string file_name, int side){
+    ofstream fout(file_name);
+    fout << "UCLA wts 1.0" << endl << endl;
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == side)
+            fout << "\t"  << Instances[i].instName << " " << 1 << endl;
+    }
+
+    fout.close();
+}
+
+void Data::makePlFile(string file_name, int side){
+    ofstream fout(file_name);
+    fout << "UCLA pl 1.0" << endl << endl;
+    for(int i=0;i<instanceCount;i++){
+        // No fixed cell
+        if(PartitionResult[i] == side)
+            fout << "\t"  << Instances[i].instName << "\t0\t0 : N" << endl;
+    }
+
+    fout.close();
+}
+
+void Data::makeSclFile(string file_name, int side){
+    ofstream fout(file_name);
+    
+    fout << "UCLA scl 1.0" << endl << endl;
+
+    Die *curDie = (side==0)?&TopDie:&BottomDie;
+
+    fout << "NumRows : " << curDie->repeatCount << endl << endl;    
+
+    // fixed start Y for coordinate
+    int coordinate = 0;
+    for(int i=0;i<curDie->repeatCount;i++){
+        fout << "CoreRow Horizontal" << endl;
+        fout << " Coordinate : " << coordinate << endl;
+        fout << " Height : " << curDie->rowHeight << endl;
+        fout << " Sitewidth : 1" << endl;
+        fout << " Sitespacing : 1" << endl;
+        fout << " Siteorient : 1" << endl;
+        fout << " Sitesymmetry : 1" << endl;
+        // fixed start X
+        fout << " SubrowOrigin : " << 0 << "  NumSites : " << curDie->rowLength << endl;
+        fout << "End" << endl; 
+
+        coordinate += curDie->rowHeight;
+    }
+
+    fout.close();   
 }

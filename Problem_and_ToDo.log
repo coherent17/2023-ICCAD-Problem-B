@@ -1,0 +1,11 @@
+2023/6/10
+
+Finish:
+all input file for placer, wait for check...
+
+ToDo:
+we can save instacne index in Nets class to save time in makeNetsFile
+****solve the error on placer****
+
+Problem:
+No min cut?(in case1 there are 5 cross net)

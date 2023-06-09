@@ -584,9 +584,11 @@ void Data::Placement(){
     // fout << "RowBasedPlacement : "  << nodes_file << " " << nets_file << " " 
     //                                 << wts_file << " " << pl_file << " " << scl_file << endl;
     fout << "RowBasedPlacement : iccad.nodes iccad.nets iccad.wts iccad.pl iccad.scl" << endl;
+    
+    
     // call ntuplacer
     string placer_path = "./lib/ntuplace/ntuplace3";
-    string cmd = placer_path + " -aux ./placement/iccad.aux";
+    string cmd = placer_path + " -aux ./placement/iccad.aux -MRT";
     system(cmd.c_str());
 
 }
@@ -702,9 +704,14 @@ void Data::makePlFile(string file_name, int side){
     ofstream fout(file_name);
     fout << "UCLA pl 1.0" << endl << endl;
     for(int i=0;i<instanceCount;i++){
+        continue;
         // No fixed cell
-        if(PartitionResult[i] == side)
-            fout << "\t"  << Instances[i].instName << "\t0\t0 : N" << endl;
+        if(PartitionResult[i] == side){
+            if(Instances[i].LibCellptr->isMacro)
+                fout << "\t"  << Instances[i].instName << "\t0\t0 : " << endl;
+            else
+                fout << "\t"  << Instances[i].instName << "\t0\t0 : N" << endl;
+        }
     }
 
     fout.close();

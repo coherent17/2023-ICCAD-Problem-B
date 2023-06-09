@@ -115,6 +115,7 @@ class Data{
         void PartitionUntilFindSolution();
         void showPartitionResult();
         bool Evaluation(string);
+        void LoadPartition();
 };
 
 #endif

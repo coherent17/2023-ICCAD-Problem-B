@@ -481,6 +481,7 @@ void Data::Partition(string input_filename, bool *isValidPartition, int8_t optio
     
     //weighted graph without fix part
     else if((option & WEIGHTED) && !(option & FIX_PARTITION)){
+        cout << "Weighted Partition" << endl;
         system("./lib/hmetis/shmetis Weighted_Graph.hgr 2 5 > /dev/null");
     }
 
@@ -516,15 +517,16 @@ void Data::PartitionUntilFindSolution(){
 
     //perform the normal basic partition for case 1 remain for the condition of min cut
     for(int i = 0; i < 5; i++){
+        cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED);
-        if(isValidPartition) break;
+        if(isValidPartition) return;
     }
 
     //for case 2 and 3 is good
     for(int i = 0; i < 60; i++){
         cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
-        if(isValidPartition) break;
+        if(isValidPartition) return;
     }
 
 }
@@ -589,6 +591,7 @@ void Data::Placement(){
     // call ntuplacer
     string placer_path = "./lib/ntuplace/ntuplace3";
     string cmd = placer_path + " -aux ./placement/iccad.aux -MRT";
+    system(("chmod +x " + placer_path).c_str());
     system(cmd.c_str());
 
 }

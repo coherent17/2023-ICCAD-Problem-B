@@ -137,7 +137,7 @@ class Data{
         void makeSclFile(string, int);
         void loadPlacementResult(string, int);
         void showPlacementResult();
-        void GreedyPlacement(int);
+        void GeedyPlacement(int);
 
         // Terminal
         int NumTerminals;

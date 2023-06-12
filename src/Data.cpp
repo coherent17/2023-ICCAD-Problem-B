@@ -597,7 +597,7 @@ void Data::Placement(){
 
         // load placement result
         string result_file = "./iccad.ntup.pl";
-        loadPlacementResult(result_file);
+        loadPlacementResult(result_file, curDie);
         cout<<"Finish"<<endl;
     }
 }
@@ -800,7 +800,8 @@ void Data::GeedyPlacement(int side){
     int dieSizeY = (side == 0)?TopDie.upperRightY:BottomDie.upperRightY;
     for(int i=0;i<instanceCount;i++){
         if(PartitionResult[i] == side){
-            if(Instances[i])
+            //if(Instances[i])
+            ;
         }
     }
 }

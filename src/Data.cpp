@@ -516,7 +516,7 @@ void Data::PartitionUntilFindSolution(){
     bool isValidPartition = false;
 
     //perform the normal basic partition for case 1 remain for the condition of min cut
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < -1; i++){
         cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED);
         if(isValidPartition) return;
@@ -562,38 +562,44 @@ void Data::Placement(){
     // create output directory
     system("mkdir -p placement");
 
-    int curDie = 0;
+    for(int curDie=0;curDie<2;curDie++){
+        // input file names for ntuplacer in bookshelf format
+        string nodes_file = "./placement/iccad.nodes";
+        string nets_file = "./placement/iccad.nets";
+        string wts_file = "./placement/iccad.wts";
+        string pl_file = "./placement/iccad.pl";
+        string scl_file = "./placement/iccad.scl";
 
-    // input file names for ntuplacer in bookshelf format
-    string nodes_file = "./placement/iccad.nodes";
-    string nets_file = "./placement/iccad.nets";
-    string wts_file = "./placement/iccad.wts";
-    string pl_file = "./placement/iccad.pl";
-    string scl_file = "./placement/iccad.scl";
+        // generat inputs file
+        makeNodesFile(nodes_file, curDie);
+        makeNetsFile(nets_file, curDie);
+        makeWtsFile(wts_file, curDie);
+        makePlFile(pl_file, curDie);
+        makeSclFile(scl_file, curDie);
 
-    cout<<"Instance Number : "<<instanceCount<<endl;
-    cout<<"Partitiol Result : "<<PartitionResult.size()<<endl;
+        // generate aux file
+        ofstream fout("./placement/iccad.aux");
+        // fout << "RowBasedPlacement : "  << nodes_file << " " << nets_file << " " 
+        //                                 << wts_file << " " << pl_file << " " << scl_file << endl;
+        fout << "RowBasedPlacement : iccad.nodes iccad.nets iccad.wts iccad.pl iccad.scl" << endl;
+        
+        // Remove old result
+        system("rm ./iccad.ntup.pl");
+        
+        // call ntuplacer
+        string placer_path = "./lib/ntuplace/ntuplace3";
+        string parameter = "";
+        if(instanceCount < 100 || instanceCount > 15000)
+            parameter = "-noglobal ";
+        string cmd = placer_path + " -aux ./placement/iccad.aux -MRT " + parameter;
+        system(("chmod +x " + placer_path).c_str());
+        system(cmd.c_str());
 
-    // generat inputs file
-    makeNodesFile(nodes_file, curDie);
-    makeNetsFile(nets_file, curDie);
-    makeWtsFile(wts_file, curDie);
-    makePlFile(pl_file, curDie);
-    makeSclFile(scl_file, curDie);
-
-    // generate aux file
-    ofstream fout("./placement/iccad.aux");
-    // fout << "RowBasedPlacement : "  << nodes_file << " " << nets_file << " " 
-    //                                 << wts_file << " " << pl_file << " " << scl_file << endl;
-    fout << "RowBasedPlacement : iccad.nodes iccad.nets iccad.wts iccad.pl iccad.scl" << endl;
-    
-    
-    // call ntuplacer
-    string placer_path = "./lib/ntuplace/ntuplace3";
-    string cmd = placer_path + " -aux ./placement/iccad.aux -MRT";
-    system(("chmod +x " + placer_path).c_str());
-    system(cmd.c_str());
-
+        // load placement result
+        string result_file = "./iccad.ntup.pl";
+        loadPlacementResult(result_file);
+        cout<<"Finish"<<endl;
+    }
 }
 
 void Data::makeNodesFile(string file_name, int side){
@@ -624,6 +630,7 @@ void Data::makeNetsFile(string file_name, int side){
     ofstream fout(file_name);
     fout << "UCLA nets 1.0" << endl << endl;
     int pinCount = 0;
+    int curNetCount = 0;
     vector<int> numOfPin(netCount, 0);
     for(int i=0;i<netCount;i++){
         int curPinCount = 0;
@@ -643,12 +650,16 @@ void Data::makeNetsFile(string file_name, int side){
             }
         }
         numOfPin[i] = curPinCount;
+        if(curPinCount > 0)
+            curNetCount++;
     }
 
-    fout << "NumNets : "<< netCount << endl;
+    fout << "NumNets : "<< curNetCount << endl;
     fout << "NumPins : "<< pinCount << endl << endl;
 
     for(int i=0;i<netCount;i++){
+        if(numOfPin[i] == 0)
+            continue;
         // assume all Net has numPins == numInstances
         fout << "NetDegree : " << numOfPin[i] << endl;
         for(int j=0;j<Nets[i].numPins;j++){
@@ -710,9 +721,9 @@ void Data::makePlFile(string file_name, int side){
         continue;
         // No fixed cell
         if(PartitionResult[i] == side){
-            if(Instances[i].LibCellptr->isMacro)
-                fout << "\t"  << Instances[i].instName << "\t0\t0 : " << endl;
-            else
+            // if(Instances[i].LibCellptr->isMacro)
+            //    fout << "\t"  << Instances[i].instName << "\t0\t0 : " << endl;
+            // else
                 fout << "\t"  << Instances[i].instName << "\t0\t0 : N" << endl;
         }
     }
@@ -747,4 +758,244 @@ void Data::makeSclFile(string file_name, int side){
     }
 
     fout.close();   
+}
+
+void Data::loadPlacementResult(string file_name){
+    ifstream fin(file_name);
+
+    if(!fin.is_open()){
+        cout<<"Fail to place"<<endl;
+        exit(0);
+    }
+
+    string line;
+    getline(fin, line); // load UCLA pl 1.0 Useless
+
+    while(getline(fin, line)){
+        if(line == "")
+            continue;
+        stringstream ss(line);
+        char _;
+        int x, y, idx;
+        string orientation;
+        ss >> _ >> idx >> x >> y >> _ >> orientation;
+        idx--;
+        Instances[idx].X = x;
+        Instances[idx].Y = y;
+        Instances[idx].orientation = orientation; 
+    }
+
+    fin.close();
+}
+
+void Data::showPlacementResult(){
+    for(size_t i = 0; i < PartitionResult.size(); i++){
+        cout    << "Instance : "<< i+1 << " is on "<<Instances[i].X << " " << Instances[i].Y 
+                << " with orientation :" << Instances[i].orientation << endl;
+    }
+}
+
+
+//***********************//
+//      Terminal         //
+//***********************//
+// Description:
+// 1. Reference to Coherent
+
+void Data::terminalPlacement(){
+    terminalPlacementState = vector< vector<int> >(TopDie.upperRightY, vector<int>(TopDie.upperRightX, 0));
+    int spacing = HybridTerminal.spacing;
+    int sizeY = HybridTerminal.sizeY;
+    int sizeX = HybridTerminal.sizeX;
+    int dieSizeX = TopDie.upperRightX;
+    int dieSizeY = TopDie.upperRightY;
+    NumTerminals = 0;
+
+    int startX = sizeX/2 + spacing;
+    int startY = sizeY/2 + spacing;
+    for(int i=0;i<netCount;i++){
+        Nets[i].hasTerminal = false;
+        if(needTerminal(i)){
+            // cout << "Place Terminal for net : "<< i <<endl;
+            NumTerminals++;
+            // stupid placement
+            if(startX + spacing + sizeX < dieSizeX){
+                Nets[i].HBlocationX = startX;
+                Nets[i].HBlocationY = startY;
+                Nets[i].hasTerminal = true;
+                startX += spacing + sizeX;
+            }
+            else{
+                startX = sizeX/2 + spacing;
+                startY += spacing + sizeY;
+                Nets[i].HBlocationX = startX;
+                Nets[i].HBlocationY = startY;
+                Nets[i].hasTerminal = true;
+                startX += spacing + sizeX;
+            }
+            
+            continue;
+            Nets[i].hasTerminal = true;
+            int x_max, x_min, y_max, y_min;
+            getNetExtreme(i, x_max, x_min, y_max, y_min);
+
+            int lower = (y_min < (spacing + (sizeY/2))) ? (spacing + sizeY/2) : y_min;
+            int upper = min(y_max, dieSizeY - spacing - sizeY/2 -1);
+            int left = max(x_min, spacing + sizeX/2);
+            int right = min(x_max, dieSizeX - spacing - sizeX/2 - 1);
+
+            bool placed = false;
+
+            for(int j=lower; j<=upper;j++){
+                for(int k=left; k<=right;j++){
+                    if(isValidTerminalPlacement(j, k, sizeX, sizeY, spacing)){
+                        fillTerminalPlacement(j, k, sizeX, sizeY, spacing);
+                        Nets[i].HBlocationX = k;
+                        Nets[i].HBlocationY = j;
+                        placed = true;
+                        break;
+                    }
+                }
+                if(placed)
+                    break;
+            }
+
+            if(!placed){
+                cout << "net failed : " << i << endl;
+            }
+        }
+    }
+
+    cout<<"Num of terminal : "<< NumTerminals<<endl;
+}
+
+bool Data::needTerminal(int in){
+    int prev = -1;
+    for(int i=0;i<Nets[in].instName.size();i++){
+        char _;
+        int idx;
+        stringstream ss(Nets[in].instName[i]);
+        ss >> _ >> idx;
+        idx--;
+
+        if(prev != -1 && PartitionResult[idx] != prev){
+            return true;
+        }
+        prev = PartitionResult[idx];
+    }
+
+    return false;
+}
+
+void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min){
+    for(int i=0;i<Nets[in].instName.size();i++){
+        char _;
+        int idx;
+        stringstream ss(Nets[in].instName[i]);
+        ss >> _ >> idx;
+        idx--;
+
+        if(x_max < Instances[idx].X){
+            x_max = Instances[idx].X;
+        }
+        else if(x_min > Instances[idx].X){
+            x_min = Instances[idx].X;
+        }
+
+        if(y_max < Instances[idx].Y){
+            y_max = Instances[idx].Y;
+        }
+        else if(y_min > Instances[idx].Y){
+            y_min = Instances[idx].Y;
+        }
+    }
+}
+
+bool Data::isValidTerminalPlacement(int center_x, int center_y, int terminalX, int terminalY, int spacing){
+    for(int i= center_y - terminalY/2 - spacing +1 ; i <= center_y + terminalY/2 +spacing; i++){
+        for(int j= center_x - terminalX/2 - spacing +1 ; j <= center_x + terminalX/2 +spacing; j++){
+            
+            if(terminalPlacementState[i][j]){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void Data::fillTerminalPlacement(int center_x, int center_y, int terminalX, int terminalY, int spacing){
+    for(int i= center_y - terminalY/2 +1 ; i <= center_y + terminalY/2 ; i++){
+        for(int j= center_x - terminalX/2 +1 ; j <= center_x + terminalX/2 ; j++){
+            terminalPlacementState[i][j]=1;
+        }
+    }
+}
+
+//***********************//
+//      Output           //
+//***********************//
+// Description:
+// 1. TopDie
+// 2. BottomDie
+// 3. Terminals
+
+void Data::output(char *file_name){
+    FILE *out = fopen(file_name, "w");
+
+    // calculate cell number
+    int TopDieCell = 0;
+    int BottomDieCell = 0;
+    for(int i=0;i<instanceCount;i++)
+        if(PartitionResult[i])
+            BottomDieCell++;
+        else
+            TopDieCell++;
+
+    fprintf(out, "TopDiePlacement %d\n", TopDieCell);
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == 0){
+            string output_orientation = getOrientation(i);
+            fprintf(out, "Inst %s %d %d %s\n", Instances[i].instName.c_str(), Instances[i].X, Instances[i].Y, output_orientation.c_str());
+        }
+    }
+
+    fprintf(out, "BottomDiePlacement %d\n", BottomDieCell);
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == 1){
+            string output_orientation = getOrientation(i);
+            fprintf(out, "Inst %s %d %d %s\n", Instances[i].instName.c_str(), Instances[i].X, Instances[i].Y, output_orientation.c_str());
+        }
+    }
+
+    fprintf(out, "NumTerminals %d\n", NumTerminals);
+    for(int i=0;i<netCount;i++){
+        if(Nets[i].hasTerminal){
+            fprintf(out, "Terminal %s %d %d\n", Nets[i].netName.c_str(), Nets[i].HBlocationX, Nets[i].HBlocationY);
+        }
+    }
+}
+
+string Data::getOrientation(int i){
+    char comp = Instances[i].orientation[0];
+    if(comp == 'F')
+        comp = Instances[i].orientation[1];
+    switch(comp){
+        case 'N':
+            return "R0";
+            break;
+        case 'S':
+            return "R180";
+            break;
+        case 'E':
+            return "R270";
+            break;
+        case 'W':
+            return "R90";
+            break;
+
+        default:
+            cout<<"Invalid choice"<<endl;
+            break;
+    }
+    return "R0";
 }

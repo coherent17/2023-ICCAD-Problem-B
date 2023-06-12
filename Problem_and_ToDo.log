@@ -3,9 +3,23 @@
 Finish:
 all input file for placer, wait for check...
 
+
 ToDo:
 we can save instacne index in Nets class to save time in makeNetsFile
-****solve the error on placer****
+****solve the error on placer**** only case2 can run
 
 Problem:
 No min cut?(in case1 there are 5 cross net)
+
+2023/6/13
+Finish:
+all the flow, case2 can pass
+
+ToDo:
+placement on case1
+
+optimize:
+reduce cut size (do a min cut partition then legalize?)
+greedy placement (use greedy method to place second die then legalize?)
+change file I/O to fprintf
+Terminal placement(now is just place to pass verifier)

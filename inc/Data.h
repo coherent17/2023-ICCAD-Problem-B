@@ -68,6 +68,11 @@ struct Instance{
     string libCellName;
     int libCellName_int;
     LibCell *LibCellptr;
+
+    // Placement
+    // Bottom left coordinate
+    int X, Y;
+    string orientation;
 };
 
 struct Net{
@@ -75,6 +80,12 @@ struct Net{
     int numPins;
     vector<string> instName;
     vector<string> libPinName;
+
+
+    // Terminal Placement
+    bool hasTerminal;
+    int HBlocationX;
+    int HBlocationY;
 };
 
 
@@ -124,6 +135,22 @@ class Data{
         void makeWtsFile(string, int);
         void makePlFile(string, int);
         void makeSclFile(string, int);
+        void loadPlacementResult(string, int);
+        void showPlacementResult();
+        void GreedyPlacement(int);
+
+        // Terminal
+        int NumTerminals;
+        vector< vector<int> > terminalPlacementState;
+        void terminalPlacement();
+        bool needTerminal(int);
+        void getNetExtreme(int, int&, int&, int&, int&);
+        bool isValidTerminalPlacement(int, int, int ,int ,int );
+        void fillTerminalPlacement(int ,int ,int ,int ,int);
+
+        // Output
+        void output(char *);
+        string getOrientation(int);
 };
 
 #endif

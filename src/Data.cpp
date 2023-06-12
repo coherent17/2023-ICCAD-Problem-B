@@ -650,15 +650,17 @@ void Data::makeNetsFile(string file_name, int side){
             }
         }
         numOfPin[i] = curPinCount;
-        if(curPinCount > 0)
+        if(curPinCount > 1)
             curNetCount++;
+        else
+            pinCount -= curPinCount;
     }
 
     fout << "NumNets : "<< curNetCount << endl;
     fout << "NumPins : "<< pinCount << endl << endl;
 
     for(int i=0;i<netCount;i++){
-        if(numOfPin[i] == 0)
+        if(numOfPin[i] <= 1)
             continue;
         // assume all Net has numPins == numInstances
         fout << "NetDegree : " << numOfPin[i] << endl;
@@ -760,12 +762,14 @@ void Data::makeSclFile(string file_name, int side){
     fout.close();   
 }
 
-void Data::loadPlacementResult(string file_name){
+void Data::loadPlacementResult(string file_name, int side){
     ifstream fin(file_name);
 
     if(!fin.is_open()){
-        cout<<"Fail to place"<<endl;
-        exit(0);
+        cout<<"Fail to place "<<side<<endl;
+        cout<<"Greedy placement"<<endl;
+        GreedyPlacement(side);
+        return ;
     }
 
     string line;
@@ -786,6 +790,19 @@ void Data::loadPlacementResult(string file_name){
     }
 
     fin.close();
+}
+
+void Data::GeedyPlacement(int side){
+    int startX = 0;
+    int startY = 0;
+    int nextY = 0;
+    int dieSizeX = (side == 0)?TopDie.upperRightX:BottomDie.upperRightX;
+    int dieSizeY = (side == 0)?TopDie.upperRightY:BottomDie.upperRightY;
+    for(int i=0;i<instanceCount;i++){
+        if(PartitionResult[i] == side){
+            if(Instances[i])
+        }
+    }
 }
 
 void Data::showPlacementResult(){

@@ -135,8 +135,9 @@ class Data{
         void makeWtsFile(string, int);
         void makePlFile(string, int);
         void makeSclFile(string, int);
-        void loadPlacementResult(string);
+        void loadPlacementResult(string, int);
         void showPlacementResult();
+        void GreedyPlacement(int);
 
         // Terminal
         int NumTerminals;

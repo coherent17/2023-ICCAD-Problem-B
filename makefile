@@ -27,11 +27,12 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp | $(OBJDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 getCase:
+	rm -rf Testcase
 	mkdir -p Testcase
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1_0522.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case2.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_0522.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_0612.txt
 
 .PHONY: getCase
 

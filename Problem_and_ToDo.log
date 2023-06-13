@@ -23,3 +23,12 @@ reduce cut size (do a min cut partition then legalize?)
 greedy placement (use greedy method to place second die then legalize?)
 change file I/O to fprintf
 Terminal placement(now is just place to pass verifier)
+
+# ntuplacer usage optimize:
+
+## (a) 
+Open Global placement so that avoid the long distance swap in detail placement to save some execution time.
+
+## (b) 
+No detail placement in NTUPlace, since the optimize is only for top die & bottom die, 
+there is no connection between top die and bottom die placement, create our own heuristic (SA? algorithm) to perform the 3D detail placement

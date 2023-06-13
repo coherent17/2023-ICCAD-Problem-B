@@ -143,6 +143,19 @@ void Data::readInstanceInfo(ifstream& fin){
         Instances.push_back(temp);
     }
     getline(fin, line);
+
+
+    // sorted instances (C-N will locate in Instances[N-1])
+    vector<Instance> tmp(instanceCount);
+    for(int i=0;i<instanceCount;i++){
+        stringstream zz(Instances[i].instName);
+        char _;
+        int idx;
+        zz >> _ >> idx;
+        idx--;
+        tmp[idx] = Instances[i];
+    }
+    Instances = tmp;
 }
 
 void Data::readNetlistInfo(ifstream& fin){
@@ -525,28 +538,98 @@ void Data::PartitionUntilFindSolution(){
     bool isValidPartition = false;
 
     //perform the normal basic partition for case 1 remain for the condition of min cut
-    for(int i = 0; i < -1; i++){
+    for(int i = 0; i < 1; i++){
         cout << "Execution Partition " << i << endl;
-        Partition(input_filename, &isValidPartition, WEIGHTED);
+        Partition(input_filename, &isValidPartition, 0);
         if(isValidPartition) return;
     }
 
     //for case 2 and 3 is good
-    for(int i = 0; i < 60; i++){
+    for(int i = 0; i < 2; i++){
         cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
         if(isValidPartition) return;
     }
 
+    // cannot find legal solution -> copy to the vector
+    if(!isValidPartition){
+        ifstream fin(input_filename + ".part.2");
+        int partition;
+        for(int i = 0; i < instanceCount; i++){
+            fin >> partition;
+            PartitionResult.push_back(partition);
+        }
+    }
+
+    legalizePartion();
 }
 
+void Data::legalizePartion(){
+    cout << "Legalize Partition " << endl;
+    bool ret = true;
+    double TopDieMaxSize = TopDie.util / 100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
+    double BottomDieMaxSize = BottomDie.util / 100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
+    double TopDieArea = 0;
+    double BottomDieArea = 0;
+
+    int partition;
+    for(int i = 0; i < instanceCount; i++){
+        partition = PartitionResult[i];
+        if(partition == PARTITION_TOP){
+            TopDieArea += TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        }
+        else{
+            BottomDieArea += BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+        }
+    }
+
+    while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize){
+        int idx = rand() % instanceCount;
+        if(TopDieArea > TopDieMaxSize){
+            if(PartitionResult[idx] != 0)
+                continue;
+            if(BottomDieArea + BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < BottomDieMaxSize){
+                PartitionResult[idx] = 1;
+                TopDieArea -= TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                BottomDieArea += BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+            }
+        }
+        else{
+            if(PartitionResult[idx] != 1)
+                continue;
+            if(TopDieArea + TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDieMaxSize){
+                PartitionResult[idx] = 0;
+                TopDieArea += TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                BottomDieArea -= BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+            }
+        }
+    }
+
+    cout << "-------------Legalize Result-------------------" << endl;
+    cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength) / double(TopDie.rowHeight) / double(TopDie.repeatCount) * 100.0 << endl;
+    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength)  / double(BottomDie.rowHeight) / double(BottomDie.repeatCount) * 100.0 << endl;
+    cout << "----------------------------------------------------" << endl;
+}
+
+
 void Data::showPartitionResult(){
+    ofstream fout("partition.txt");
     for(size_t i = 0; i < PartitionResult.size(); i++){
-        cout << "Instance : "<< i+1 << " is on "<<PartitionResult[i] << endl;
+        fout << "Instance : "<< i+1 << " name : "<< Instances[i].instName<< " is on "<<PartitionResult[i] << endl;
     }
 }
 
 void Data::LoadPartition(){
+    if(instanceCount == 8){
+        PartitionResult[6] = 0;
+        PartitionResult[2] = 1;
+        PartitionResult[0] = 0;
+        PartitionResult[3] = 0;
+        PartitionResult[5] = 1;
+        PartitionResult[1] = 0;
+        PartitionResult[4] = 0;
+        PartitionResult[7] = 0;
+    }
     for(size_t i = 0; i < PartitionResult.size(); i++){
         if(PartitionResult[i] == PARTITION_TOP){
             Instances[i].LibCellptr = &(TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1]);
@@ -570,6 +653,7 @@ void Data::LoadPartition(){
 void Data::Placement(){
     // create output directory
     system("mkdir -p placement");
+
 
     for(int curDie=0;curDie<2;curDie++){
         // input file names for ntuplacer in bookshelf format
@@ -777,7 +861,7 @@ void Data::loadPlacementResult(string file_name, int side){
     if(!fin.is_open()){
         cout<<"Fail to place "<<side<<endl;
         cout<<"Greedy placement"<<endl;
-        GreedyPlacement(side);
+        GeedyPlacement(side);
         return ;
     }
 
@@ -809,15 +893,28 @@ void Data::GeedyPlacement(int side){
     int dieSizeY = (side == 0)?TopDie.upperRightY:BottomDie.upperRightY;
     for(int i=0;i<instanceCount;i++){
         if(PartitionResult[i] == side){
-            //if(Instances[i])
-            ;
+            if(Instances[i].LibCellptr->libCellSizeX + startX < dieSizeX){
+                ;
+            }
+            else{
+                startX = 0;
+                startY = nextY;
+                nextY = 0;
+            }
+
+            Instances[i].X = startX;
+            Instances[i].Y = startY;
+            Instances[i].orientation = "N";
+            startX += Instances[i].LibCellptr->libCellSizeX;
+            nextY = max(Instances[i].LibCellptr->libCellSizeY, nextY); 
         }
     }
 }
 
 void Data::showPlacementResult(){
+    ofstream fout("test.txt");
     for(size_t i = 0; i < PartitionResult.size(); i++){
-        cout    << "Instance : "<< i+1 << " is on "<<Instances[i].X << " " << Instances[i].Y 
+        fout    << "Instance : "<< i+1 << " is on "<<Instances[i].X << " " << Instances[i].Y 
                 << " with orientation :" << Instances[i].orientation << endl;
     }
 }

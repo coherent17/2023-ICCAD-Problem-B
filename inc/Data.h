@@ -127,6 +127,7 @@ class Data{
         void showPartitionResult();
         bool Evaluation(string);
         void LoadPartition();
+        void legalizePartion();
 
         // Placement
         void Placement();

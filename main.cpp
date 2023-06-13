@@ -18,8 +18,8 @@ int main(int argc, char *argv[]){
     system("chmod +x lib/hmetis/shmetis");
     D.PartitionUntilFindSolution();
     // if(DEBUG)
-    //   D.showPartitionResult();
-    
+    //  D.showPartitionResult();
+
     D.LoadPartition();
 
     D.Placement();

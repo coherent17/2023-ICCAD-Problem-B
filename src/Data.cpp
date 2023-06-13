@@ -268,9 +268,13 @@ void Data::GeneratePartitionGraph(){
     //Following # of net lines contains the cell connected by the net
     for(int i = 0; i < netCount; i++){
         for(int j = 0; j < Nets[i].numPins; j++){
-            string temp = Nets[i].instName[j];
-            replace(temp.begin(), temp.end(), 'C', ' ');    //C1 -> 1
-            fprintf(unweighted_vertices_graph, "%d ", stoi(temp));
+            // string temp = Nets[i].instName[j];
+            // replace(temp.begin(), temp.end(), 'C', ' ');    //C1 -> 1
+            stringstream ss(Nets[i].instName[j]);
+            char _;
+            int temp;
+            ss >> _ >> temp;
+            fprintf(unweighted_vertices_graph, "%d ", temp);
         }
         fprintf(unweighted_vertices_graph, "\n");
     }
@@ -288,8 +292,13 @@ void Data::GeneratePartitionGraph(){
     for(int i = 0; i < netCount; i++){
         for(int j = 0; j < Nets[i].numPins; j++){
             string temp = Nets[i].instName[j];
-            replace(temp.begin(), temp.end(), 'C', ' ');
-            fprintf(weighted_vertices_graph, "%d ", stoi(temp));
+            // replace(temp.begin(), temp.end(), 'C', ' ');
+            // fprintf(weighted_vertices_graph, "%d ", stoi(temp));
+            stringstream ss(Nets[i].instName[j]);
+            char _;
+            int temp;
+            ss >> _ >> temp;
+            fprintf(unweighted_vertices_graph, "%d ", temp);
         }
         fprintf(weighted_vertices_graph, "\n");
     }

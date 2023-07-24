@@ -69,6 +69,9 @@ struct Instance{
     int libCellName_int;
     LibCell *LibCellptr;
 
+    // net
+    vector<int> connectNets;
+
     // Placement
     // Bottom left coordinate
     int X, Y;
@@ -81,7 +84,7 @@ struct Net{
     vector<string> instName;
     vector<string> libPinName;
 
-
+    
     // Terminal Placement
     bool hasTerminal;
     int HBlocationX;

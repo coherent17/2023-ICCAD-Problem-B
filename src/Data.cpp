@@ -180,6 +180,13 @@ void Data::readNetlistInfo(ifstream& fin){
             temp.instName.push_back(tempinstName);
             temp.libPinName.push_back(templibPinName);
             ss.clear();
+
+            ss.str(tempinstName);
+            int instNum;
+            char _;
+            ss >> _ >> instNum;
+            Instances[instNum - 1].connectNets.push_back(i);
+            ss.clear();
         }
         Nets.push_back(temp);
     }
@@ -304,7 +311,7 @@ void Data::GeneratePartitionGraph(){
     //Following # of net lines contains the cell connected by the net
     for(int i = 0; i < netCount; i++){
         for(int j = 0; j < Nets[i].numPins; j++){
-            string temp = Nets[i].instName[j];
+            // string temp = Nets[i].instName[j];
             // replace(temp.begin(), temp.end(), 'C', ' ');
             // fprintf(weighted_vertices_graph, "%d ", stoi(temp));
             stringstream ss(Nets[i].instName[j]);
@@ -572,6 +579,8 @@ void Data::legalizePartion(){
     double TopDieArea = 0;
     double BottomDieArea = 0;
 
+
+    // initial die area
     int partition;
     for(int i = 0; i < instanceCount; i++){
         partition = PartitionResult[i];
@@ -583,24 +592,59 @@ void Data::legalizePartion(){
         }
     }
 
-    while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize){
+    // initial terminal number
+    NumTerminals = 0;
+    for(int i=0;i<netCount;i++){
+        Nets[i].hasTerminal = false;
+        if(needTerminal(i)){
+            Nets[i].hasTerminal = true;
+            NumTerminals++;
+        }
+    }  
+
+    double maxNumOfTerminal = int((TopDie.upperRightX - HybridTerminal.spacing) / (HybridTerminal.sizeX + HybridTerminal.spacing))
+                            * int((TopDie.upperRightY - HybridTerminal.spacing) / (HybridTerminal.sizeY + HybridTerminal.spacing));
+
+    while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize || NumTerminals > maxNumOfTerminal){
         int idx = rand() % instanceCount;
+        cout << "select instance : " << idx << endl;
+        cout << "Num of terminal : " << NumTerminals << endl;
         if(TopDieArea > TopDieMaxSize){
             if(PartitionResult[idx] != 0)
                 continue;
             if(BottomDieArea + BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < BottomDieMaxSize){
+                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                    if(needTerminal(Instances[idx].connectNets[i]))
+                        NumTerminals--;
+                }
+
                 PartitionResult[idx] = 1;
                 TopDieArea -= TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
                 BottomDieArea += BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+
+                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                    if(needTerminal(Instances[idx].connectNets[i]))
+                        NumTerminals++;
+                }
             }
         }
         else{
             if(PartitionResult[idx] != 1)
                 continue;
             if(TopDieArea + TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDieMaxSize){
+                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                    if(needTerminal(Instances[idx].connectNets[i]))
+                        NumTerminals--;
+                }
+                
                 PartitionResult[idx] = 0;
                 TopDieArea += TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
                 BottomDieArea -= BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+           
+                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                    if(needTerminal(Instances[idx].connectNets[i]))
+                        NumTerminals++;
+                }
             }
         }
     }
@@ -620,7 +664,7 @@ void Data::showPartitionResult(){
 }
 
 void Data::LoadPartition(){
-    if(instanceCount == 8){
+    if(instanceCount == 8 && 0){
         PartitionResult[6] = 0;
         PartitionResult[2] = 1;
         PartitionResult[0] = 0;
@@ -640,6 +684,7 @@ void Data::LoadPartition(){
         //never reach here
         else abort();
     }
+    legalizePartion();
 }
 
 //***********************//
@@ -943,7 +988,7 @@ void Data::terminalPlacement(){
             // cout << "Place Terminal for net : "<< i <<endl;
             NumTerminals++;
             // stupid placement
-            if(startX + spacing + sizeX < dieSizeX){
+            if(startX + spacing + sizeX/2 < dieSizeX){
                 Nets[i].HBlocationX = startX;
                 Nets[i].HBlocationY = startY;
                 Nets[i].hasTerminal = true;

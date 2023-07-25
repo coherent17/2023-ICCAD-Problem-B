@@ -3,11 +3,11 @@ Inst C2 0 0 R0
 Inst C3 17 0 R0
 Inst C6 0 12 R0
 BottomDiePlacement 5
-Inst C1 19 0 R0
-Inst C4 24 15 R0
-Inst C5 12 15 R0
-Inst C7 0 0 R0
-Inst C8 12 0 R0
+Inst C1 0 15 R0
+Inst C4 7 15 R0
+Inst C5 7 0 R0
+Inst C7 19 15 R0
+Inst C8 26 0 R0
 NumTerminals 5
 Terminal N1 8 8
 Terminal N2 19 8

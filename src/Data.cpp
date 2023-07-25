@@ -858,13 +858,25 @@ void Data::makePlFile(string file_name, int side){
     ofstream fout(file_name);
     fout << "UCLA pl 1.0" << endl << endl;
     for(int i=0;i<instanceCount;i++){
-        continue;
-        // No fixed cell
+        if(side == 0) // no fixed instances for first die
+            continue;
+        // fixed initial placement for second die
         if(PartitionResult[i] == side){
-            // if(Instances[i].LibCellptr->isMacro)
-            //    fout << "\t"  << Instances[i].instName << "\t0\t0 : " << endl;
-            // else
-                fout << "\t"  << Instances[i].instName << "\t0\t0 : N" << endl;
+            int initX = 0;
+            int initY = 0;
+            for(int j=0;j<Instances[i].connectNets.size();j++){
+                if(Nets[j].hasTerminal){
+                    int max_x, min_x, max_y, min_y;
+                    getNetExtreme(j, max_x, min_x, max_y, min_y);
+                    initX = (max_x + min_x) / 2.0;
+                    initY = (max_y + min_y) / 2.0;
+                    break; // now only consider first net
+                }
+            }
+            if(initX == 0 && initY == 0)
+                fout << "\t" << Instances[i].instName << "\t0\t0 : N" << endl;
+            else
+                fout << "\t" << Instances[i].instName << "\t" << initX << "\t" << initY << " : N" << endl; 
         }
     }
 

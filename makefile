@@ -15,6 +15,9 @@ OBJS = $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
 # Name of the executable
 TARGET = CADB
 
+# Evaluator
+EVALUATOR = Evaluator/ProblemB_evaluator_20230418
+
 all: $(TARGET)
 
 $(OBJDIR):
@@ -47,6 +50,18 @@ do3:
 
 do4:
 	./$(TARGET) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt
+
+test1:
+	./$(EVALUATOR) Testcase/ProblemB_case1.txt Testcase/ProblemB_case1_result.txt 
+
+test2:
+	./$(EVALUATOR) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt 
+
+test3:
+	./$(EVALUATOR) Testcase/ProblemB_case3.txt Testcase/ProblemB_case3_result.txt 
+
+test4:
+	./$(EVALUATOR) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt 
 
 check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt

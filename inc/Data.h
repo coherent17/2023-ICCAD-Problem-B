@@ -1,7 +1,8 @@
 #ifndef DATA_H_
 #define DATA_H_
 
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
+#include "Terminal_placement.h"
 using namespace std;
 
 #define PARTITION_TOP 0
@@ -137,7 +138,7 @@ class Data{
         void makeNodesFile(string, int);
         void makeNetsFile(string, int);
         void makeWtsFile(string, int);
-        void makePlFile(string, int);
+        void makePlFile(string, int, bool, bool);
         void makeSclFile(string, int);
         void loadPlacementResult(string, int);
         void showPlacementResult();
@@ -149,6 +150,7 @@ class Data{
         void terminalPlacement();
         bool needTerminal(int);
         void getNetExtreme(int, int&, int&, int&, int&);
+        void getNetExtremeConsiderSide(int, int&, int&, int&, int&, int);
         bool isValidTerminalPlacement(int, int, int ,int ,int );
         void fillTerminalPlacement(int ,int ,int ,int ,int);
 

@@ -664,7 +664,7 @@ void Data::showPartitionResult(){
 }
 
 void Data::LoadPartition(){
-    if(instanceCount == 8 && 0){
+    if(instanceCount == 8){
         PartitionResult[6] = 0;
         PartitionResult[2] = 1;
         PartitionResult[0] = 0;
@@ -700,7 +700,8 @@ void Data::Placement(){
     system("mkdir -p placement");
 
 
-    for(int curDie=0;curDie<2;curDie++){
+    for(int i=0;i<3;i++){
+        int curDie = i%2;
         // input file names for ntuplacer in bookshelf format
         string nodes_file = "./placement/iccad.nodes";
         string nets_file = "./placement/iccad.nets";
@@ -712,7 +713,7 @@ void Data::Placement(){
         makeNodesFile(nodes_file, curDie);
         makeNetsFile(nets_file, curDie);
         makeWtsFile(wts_file, curDie);
-        makePlFile(pl_file, curDie);
+        makePlFile(pl_file, curDie, i!=0, i>1);
         makeSclFile(scl_file, curDie);
 
         // generate aux file
@@ -727,8 +728,10 @@ void Data::Placement(){
         // call ntuplacer
         string placer_path = "./lib/ntuplace/ntuplace3";
         string parameter = "";
-        if(instanceCount < 100 || instanceCount > 15000)
-            parameter = "-noglobal ";
+        // if(instanceCount < 100 || instanceCount > 15000)
+        //    parameter = "-noglobal ";
+        if(i == 0)
+           parameter = "-nolegal -nodetail";
         string cmd = placer_path + " -aux ./placement/iccad.aux -MRT " + parameter;
         system(("chmod +x " + placer_path).c_str());
         system(cmd.c_str());
@@ -759,8 +762,6 @@ void Data::makeNodesFile(string file_name, int side){
                         <<Instances[i].LibCellptr->libCellSizeY<<endl;
         }
     }
-
-
     fout.close();
 }
 
@@ -775,7 +776,6 @@ void Data::makeNetsFile(string file_name, int side){
         for(int j=0;j<Nets[i].numPins;j++){
             string name = Nets[i].instName[j];
             // get instance index
-            // assume instance index = 1 to N
             stringstream ss(name); 
             char trash;
             int instance_idx;
@@ -854,11 +854,11 @@ void Data::makeWtsFile(string file_name, int side){
     fout.close();
 }
 
-void Data::makePlFile(string file_name, int side){
+void Data::makePlFile(string file_name, int side, bool initialPl, bool all){
     ofstream fout(file_name);
     fout << "UCLA pl 1.0" << endl << endl;
     for(int i=0;i<instanceCount;i++){
-        if(side == 0) // no fixed instances for first die
+        if(!initialPl) // no fixed instances for first die
             continue;
         // fixed initial placement for second die
         if(PartitionResult[i] == side){
@@ -867,10 +867,24 @@ void Data::makePlFile(string file_name, int side){
             for(int j=0;j<Instances[i].connectNets.size();j++){
                 if(Nets[j].hasTerminal){
                     int max_x, min_x, max_y, min_y;
-                    getNetExtreme(j, max_x, min_x, max_y, min_y);
-                    initX = (max_x + min_x) / 2.0;
-                    initY = (max_y + min_y) / 2.0;
-                    break; // now only consider first net
+                    min_x = INT_MAX;
+                    min_y = INT_MAX;
+                    max_x = INT_MIN;
+                    max_y = INT_MIN;
+                    if(!all)
+                        getNetExtremeConsiderSide(j, max_x, min_x, max_y, min_y, side);
+                    // cout<<max_x<<" "<<min_x<<" "<<max_y<<" "<<min_y<<endl;
+                    else
+                        getNetExtreme(j, max_x, min_x, max_y, min_y);
+                    if(initX == 0 && initY == 0){
+                        initX = (max_x + min_x) / 2.0;
+                        initY = (max_y + min_y) / 2.0;
+                    }
+                    else{
+                        initX = (((max_x + min_x) / 2.0) + initX) / 2.0;
+                        initY = (((max_y + min_y) / 2.0) + initY) / 2.0; 
+                    }
+                    // break; // now only consider first net
                 }
             }
             if(initX == 0 && initY == 0)
@@ -992,6 +1006,8 @@ void Data::terminalPlacement(){
     int dieSizeY = TopDie.upperRightY;
     NumTerminals = 0;
 
+    TerminalPlacement TerminalPlacer(HybridTerminal.sizeX, HybridTerminal.spacing, TopDie.upperRightX, TopDie.upperRightY);
+
     int startX = sizeX/2 + spacing;
     int startY = sizeY/2 + spacing;
     for(int i=0;i<netCount;i++){
@@ -1000,25 +1016,35 @@ void Data::terminalPlacement(){
             // cout << "Place Terminal for net : "<< i <<endl;
             NumTerminals++;
             // stupid placement
-            if(startX + spacing + sizeX/2 < dieSizeX){
-                Nets[i].HBlocationX = startX;
-                Nets[i].HBlocationY = startY;
-                Nets[i].hasTerminal = true;
-                startX += spacing + sizeX;
+            if(0){
+                if(startX + spacing + sizeX/2 < dieSizeX){
+                    Nets[i].HBlocationX = startX;
+                    Nets[i].HBlocationY = startY;
+                    Nets[i].hasTerminal = true;
+                    startX += spacing + sizeX;
+                }
+                else{
+                    startX = sizeX/2 + spacing;
+                    startY += spacing + sizeY;
+                    Nets[i].HBlocationX = startX;
+                    Nets[i].HBlocationY = startY;
+                    Nets[i].hasTerminal = true;
+                    startX += spacing + sizeX;
+                }
+                
+                continue;
             }
-            else{
-                startX = sizeX/2 + spacing;
-                startY += spacing + sizeY;
-                Nets[i].HBlocationX = startX;
-                Nets[i].HBlocationY = startY;
-                Nets[i].hasTerminal = true;
-                startX += spacing + sizeX;
-            }
-            
-            continue;
             Nets[i].hasTerminal = true;
             int x_max, x_min, y_max, y_min;
+            x_min = INT_MAX;
+            y_min = INT_MAX;
+            x_max = INT_MIN;
+            y_max = INT_MIN;
             getNetExtreme(i, x_max, x_min, y_max, y_min);
+            // cout<<x_max << " "<<x_min<<" "<<y_max<<" "<<y_min<<endl;
+            // exit(0);
+            TerminalPlacer.addTerminal(x_max, x_min, y_max, y_min);
+            continue;
 
             int lower = (y_min < (spacing + (sizeY/2))) ? (spacing + sizeY/2) : y_min;
             int upper = min(y_max, dieSizeY - spacing - sizeY/2 -1);
@@ -1044,6 +1070,19 @@ void Data::terminalPlacement(){
             if(!placed){
                 cout << "net failed : " << i << endl;
             }
+        }
+    }
+    if(0)
+        return ;
+    // cout<<"call placer"<<endl;
+    TerminalPlacer.Placement();
+
+    int terminalIdx = 0;
+    for(int i=0;i<netCount;i++){
+        if(Nets[i].hasTerminal){
+            Nets[i].HBlocationX = TerminalPlacer.getHBlocationX(terminalIdx);
+            Nets[i].HBlocationY = TerminalPlacer.getHBlocationY(terminalIdx);
+            terminalIdx++;
         }
     }
 
@@ -1075,19 +1114,46 @@ void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min)
         stringstream ss(Nets[in].instName[i]);
         ss >> _ >> idx;
         idx--;
+        // cout << Instances[idx].X << " " << Instances[idx].Y<<endl;
+        if(x_max < Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
+            x_max = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        }
+        if(x_min > Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
+            x_min = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        }
 
-        if(x_max < Instances[idx].X){
-            x_max = Instances[idx].X;
+        if(y_max < Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
+            y_max = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
         }
-        else if(x_min > Instances[idx].X){
-            x_min = Instances[idx].X;
+        if(y_min > Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
+            y_min = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
+        }
+    }
+}
+
+void Data::getNetExtremeConsiderSide(int in, int& x_max, int& x_min, int& y_max, int& y_min, int side){
+    for(int i=0;i<Nets[in].instName.size();i++){        
+        char _;
+        int idx;
+        stringstream ss(Nets[in].instName[i]);
+        ss >> _ >> idx;
+        idx--;
+
+        if(PartitionResult[idx] == side)
+            continue;
+        // cout << Instances[idx].X << " " << Instances[idx].Y<<endl;
+        if(x_max < Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
+            x_max = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        }
+        if(x_min > Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
+            x_min = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
         }
 
-        if(y_max < Instances[idx].Y){
-            y_max = Instances[idx].Y;
+        if(y_max < Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
+            y_max = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
         }
-        else if(y_min > Instances[idx].Y){
-            y_min = Instances[idx].Y;
+        if(y_min > Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
+            y_min = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
         }
     }
 }

@@ -34,8 +34,8 @@ getCase:
 	mkdir -p Testcase
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1_0522.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case2.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_0612.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3_20230720.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_20230720.txt
 
 .PHONY: getCase
 
@@ -64,9 +64,9 @@ test4:
 	./$(EVALUATOR) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt 
 
 check:
-	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case4.txt Testcase/ProblemB_case4_result.txt
+	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt > ckeck.log
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log* placement/ *.pl *.plt
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log* placement/ *.pl *.plt placementT/
 
 .PHONY: all clean

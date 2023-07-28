@@ -132,6 +132,7 @@ class Data{
         bool Evaluation(string);
         void LoadPartition();
         void legalizePartion();
+        float STD_CELL_RANDOM_ASSIGN_FACTOR;
 
         // Placement
         void Placement();
@@ -157,6 +158,9 @@ class Data{
         // Output
         void output(char *);
         string getOrientation(int);
+
+        // Other
+        void printCost();
 };
 
 #endif

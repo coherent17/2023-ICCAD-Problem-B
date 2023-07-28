@@ -119,8 +119,8 @@ void TerminalPlacement::makePlFile(string file_name){
         //     x = x + (random()%(w/2) - w);
         // if(h != 0)
         //     y = y + (random()%(h/2) - h);
-        x = min(x,22900);
-        y = min(y, 18900);
+        x = min(x,dieX - (spacing));
+        y = min(y, int(dieY-ceil(spacing)-1));
         x = max(0, x);
         y = max(0, y);
         // cout<<"end shift"<<endl;

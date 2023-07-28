@@ -12,6 +12,7 @@ int main(int argc, char *argv[]){
     Data D(*(argv + 1));
     if(DEBUG)
         D.Display();
+
     D.GeneratePartitionGraph();
 
     //make sure the executable permission is right
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]){
     //     D.showPlacementResult();
 
     D.terminalPlacement();
-
+    // D.printCost();
     D.output(argv[2]);
     return 0;
 }

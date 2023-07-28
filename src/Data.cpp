@@ -447,6 +447,7 @@ void Data::GenerateFixPart(int8_t option){
                     double Cmp = static_cast<double>(std::rand()) / RAND_MAX;
                     if(Cmp < Rand_Prob){
                         if(BottomDieRemainArea > TopDieRemainArea){
+                        // if(BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea < TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
                             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
                             fprintf(FixPart, "%d\n", 1);
                         }
@@ -551,6 +552,12 @@ void Data::PartitionUntilFindSolution(){
         if(isValidPartition) return;
     }
 
+    for(int i = 0; i < 1; i++){
+        cout << "Execution Partition " << i << endl;
+        Partition(input_filename, &isValidPartition, WEIGHTED);
+        if(isValidPartition) return;
+    }
+
     //for case 2 and 3 is good
     for(int i = 0; i < 2; i++){
         cout << "Execution Partition " << i << endl;
@@ -605,14 +612,48 @@ void Data::legalizePartion(){
     double maxNumOfTerminal = int((TopDie.upperRightX - HybridTerminal.spacing) / (HybridTerminal.sizeX + HybridTerminal.spacing))
                             * int((TopDie.upperRightY - HybridTerminal.spacing) / (HybridTerminal.sizeY + HybridTerminal.spacing));
 
-    while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize || NumTerminals > maxNumOfTerminal){
+    while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize || (NumTerminals > maxNumOfTerminal )){
         int idx = rand() % instanceCount;
         cout << "select instance : " << idx << endl;
-        cout << "Num of terminal : " << NumTerminals << endl;
         if(TopDieArea > TopDieMaxSize){
-            if(PartitionResult[idx] != 0)
+            cout<<"Top exceed!!!"<<endl;
+            // exit(0);
+        }
+        else
+            cout<<"Bottom exceed!!!"<<endl;
+        // cout << "Num of terminal : " << NumTerminals << endl;
+        // cout << TopDieArea << " " << BottomDieArea << endl;
+        /*
+        // if change reduce size then change
+        if(PartitionResult[idx] == 0){
+            if(BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
+                PartitionResult[idx] = 1;
+                TopDieArea -= TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                BottomDieArea += BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
                 continue;
-            if(BottomDieArea + BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < BottomDieMaxSize){
+            }
+        }
+        else{
+            if(BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea > TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
+                PartitionResult[idx] = 0;
+                TopDieArea += TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                BottomDieArea -= BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                continue;
+            }        
+        }
+        */
+        if(TopDieArea > TopDieMaxSize){
+            if(PartitionResult[idx] != 0 && BottomDieArea > BottomDieMaxSize )
+                if(BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea > TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
+                    PartitionResult[idx] = 0;
+                    TopDieArea += TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                    BottomDieArea -= BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                    continue;
+                }   
+            if(PartitionResult[idx] != 0)
+                continue; 
+            if(BottomDieArea + BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < BottomDieMaxSize ||
+            BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
                 for(int i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals--;
@@ -628,10 +669,18 @@ void Data::legalizePartion(){
                 }
             }
         }
-        else{
+        else if(BottomDieArea > BottomDieMaxSize){
+            if(PartitionResult[idx] != 1 && TopDieArea > TopDieMaxSize)
+                if(BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
+                    PartitionResult[idx] = 1;
+                    TopDieArea -= TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                    BottomDieArea += BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
+                    continue;
+                }
             if(PartitionResult[idx] != 1)
                 continue;
-            if(TopDieArea + TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDieMaxSize){
+            if(TopDieArea + TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDieMaxSize ||
+            BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea > TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
                 for(int i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals--;
@@ -647,6 +696,10 @@ void Data::legalizePartion(){
                 }
             }
         }
+            cout << "-------------Legalize Result-------------------" << endl;
+            cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength) / double(TopDie.rowHeight) / double(TopDie.repeatCount) * 100.0 << endl;
+    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength)  / double(BottomDie.rowHeight) / double(BottomDie.repeatCount) * 100.0 << endl;
+    cout << "----------------------------------------------------" << endl;
     }
 
     cout << "-------------Legalize Result-------------------" << endl;
@@ -730,7 +783,7 @@ void Data::Placement(){
         string parameter = "";
         // if(instanceCount < 100 || instanceCount > 15000)
         //    parameter = "-noglobal ";
-        if(i == 0)
+        if(i < 1)
            parameter = "-nolegal -nodetail";
         string cmd = placer_path + " -aux ./placement/iccad.aux -MRT " + parameter;
         system(("chmod +x " + placer_path).c_str());
@@ -854,7 +907,7 @@ void Data::makeWtsFile(string file_name, int side){
     fout.close();
 }
 
-void Data::makePlFile(string file_name, int side, bool initialPl, bool all){
+void Data::makePlFile(string file_name, int side, bool initialPl, bool allCell){
     ofstream fout(file_name);
     fout << "UCLA pl 1.0" << endl << endl;
     for(int i=0;i<instanceCount;i++){
@@ -871,7 +924,7 @@ void Data::makePlFile(string file_name, int side, bool initialPl, bool all){
                     min_y = INT_MAX;
                     max_x = INT_MIN;
                     max_y = INT_MIN;
-                    if(!all)
+                    if(!allCell)
                         getNetExtremeConsiderSide(j, max_x, min_x, max_y, min_y, side);
                     // cout<<max_x<<" "<<min_x<<" "<<max_y<<" "<<min_y<<endl;
                     else
@@ -1110,23 +1163,29 @@ bool Data::needTerminal(int in){
 void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min){
     for(int i=0;i<Nets[in].instName.size();i++){
         char _;
-        int idx;
+        int idx, PinIdx;
         stringstream ss(Nets[in].instName[i]);
         ss >> _ >> idx;
         idx--;
         // cout << Instances[idx].X << " " << Instances[idx].Y<<endl;
-        if(x_max < Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
-            x_max = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        stringstream zz(Nets[in].libPinName[i]);
+        zz >> _ >> PinIdx;
+        PinIdx--;
+        int PinX = Instances[idx].LibCellptr->Pins[PinIdx].pinLocationX;
+        int PinY = Instances[idx].LibCellptr->Pins[PinIdx].pinLocationY;
+
+        if(x_max < Instances[idx].X + PinX){
+            x_max = Instances[idx].X + PinX;
         }
-        if(x_min > Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
-            x_min = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        if(x_min > Instances[idx].X + PinX){
+            x_min = Instances[idx].X + PinX;
         }
 
-        if(y_max < Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
-            y_max = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
+        if(y_max < Instances[idx].Y + PinY){
+            y_max = Instances[idx].Y + PinY;
         }
-        if(y_min > Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
-            y_min = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
+        if(y_min > Instances[idx].Y + PinY){
+            y_min = Instances[idx].Y + PinY;
         }
     }
 }
@@ -1134,26 +1193,31 @@ void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min)
 void Data::getNetExtremeConsiderSide(int in, int& x_max, int& x_min, int& y_max, int& y_min, int side){
     for(int i=0;i<Nets[in].instName.size();i++){        
         char _;
-        int idx;
+        int idx, PinIdx;
         stringstream ss(Nets[in].instName[i]);
         ss >> _ >> idx;
         idx--;
 
         if(PartitionResult[idx] == side)
             continue;
-        // cout << Instances[idx].X << " " << Instances[idx].Y<<endl;
-        if(x_max < Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
-            x_max = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        stringstream zz(Nets[in].libPinName[i]);
+        zz >> _ >> PinIdx;
+        PinIdx--;
+        int PinX = Instances[idx].LibCellptr->Pins[PinIdx].pinLocationX;
+        int PinY = Instances[idx].LibCellptr->Pins[PinIdx].pinLocationY;
+
+        if(x_max < Instances[idx].X + PinX){
+            x_max = Instances[idx].X + PinX;
         }
-        if(x_min > Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2){
-            x_min = Instances[idx].X + Instances[idx].LibCellptr->libCellSizeX / 2;
+        if(x_min > Instances[idx].X + PinX){
+            x_min = Instances[idx].X + PinX;
         }
 
-        if(y_max < Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
-            y_max = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
+        if(y_max < Instances[idx].Y + PinY){
+            y_max = Instances[idx].Y + PinY;
         }
-        if(y_min > Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2){
-            y_min = Instances[idx].Y + Instances[idx].LibCellptr->libCellSizeY / 2;
+        if(y_min > Instances[idx].Y + PinY){
+            y_min = Instances[idx].Y + PinY;
         }
     }
 }
@@ -1245,4 +1309,48 @@ string Data::getOrientation(int i){
             break;
     }
     return "R0";
+}
+
+//***********************//
+//      Other            //
+//***********************//
+// Description:
+// 1. cost function only consider cell and macro without terminal
+
+void Data::printCost(){
+    for(int i=0;i<netCount;i++){
+        if(Nets[i].hasTerminal == 0)
+            continue;
+        int x_max, x_min, y_max, y_min;
+        x_min = INT_MAX;
+        y_min = INT_MAX;
+        x_max = INT_MIN;
+        y_max = INT_MIN;
+        // 1 for top die ignore bottom die cell
+        getNetExtremeConsiderSide(i, x_max, x_min, y_max, y_min, 1);
+        cout<< "Top die"<<endl
+            << "x_max : " << x_max << endl
+            << "x_min : " << x_min << endl
+            << "y_max : " << y_max << endl
+            << "y_min : " << y_min << endl;
+
+
+        x_min = INT_MAX;
+        y_min = INT_MAX;
+        x_max = INT_MIN;
+        y_max = INT_MIN;
+        // 0 for bottom die ignore top die cell
+        getNetExtremeConsiderSide(i, x_max, x_min, y_max, y_min, 0);
+        cout<< "Bottom die"<<endl
+            << "x_max : " << x_max << endl
+            << "x_min : " << x_min << endl
+            << "y_max : " << y_max << endl
+            << "y_min : " << y_min << endl;
+
+
+        if(Nets[i].hasTerminal){
+            cout<<"Terminal : "<<Nets[i].HBlocationX << " "<<Nets[i].HBlocationY<<endl<<endl;
+        }
+
+    }
 }

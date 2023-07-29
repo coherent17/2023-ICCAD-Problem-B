@@ -580,7 +580,7 @@ void Data::PartitionUntilFindSolution(){
 
 void Data::legalizePartion(){
     cout << "Legalize Partition " << endl;
-    bool ret = true;
+    //bool ret = true;
     double TopDieMaxSize = TopDie.util / 100.0 * TopDie.rowLength * TopDie.rowHeight * TopDie.repeatCount;
     double BottomDieMaxSize = BottomDie.util / 100.0 * BottomDie.rowLength * BottomDie.rowHeight * BottomDie.repeatCount;
     double TopDieArea = 0;
@@ -654,7 +654,7 @@ void Data::legalizePartion(){
                 continue; 
             if(BottomDieArea + BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < BottomDieMaxSize ||
             BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
-                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                for(size_t i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals--;
                 }
@@ -663,7 +663,7 @@ void Data::legalizePartion(){
                 TopDieArea -= TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
                 BottomDieArea += BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
 
-                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                for(size_t i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals++;
                 }
@@ -681,7 +681,7 @@ void Data::legalizePartion(){
                 continue;
             if(TopDieArea + TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea < TopDieMaxSize ||
             BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea > TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea){
-                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                for(size_t i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals--;
                 }
@@ -690,7 +690,7 @@ void Data::legalizePartion(){
                 TopDieArea += TopDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
                 BottomDieArea -= BottomDie.DieTech->LibCells[Instances[idx].libCellName_int - 1].libCellArea;
            
-                for(int i=0;i<Instances[idx].connectNets.size();i++){
+                for(size_t i=0;i<Instances[idx].connectNets.size();i++){
                     if(needTerminal(Instances[idx].connectNets[i]))
                         NumTerminals++;
                 }
@@ -917,7 +917,7 @@ void Data::makePlFile(string file_name, int side, bool initialPl, bool allCell){
         if(PartitionResult[i] == side){
             int initX = 0;
             int initY = 0;
-            for(int j=0;j<Instances[i].connectNets.size();j++){
+            for(size_t j=0;j<Instances[i].connectNets.size();j++){
                 if(Nets[j].hasTerminal){
                     int max_x, min_x, max_y, min_y;
                     min_x = INT_MAX;
@@ -1014,7 +1014,7 @@ void Data::GeedyPlacement(int side){
     int startY = 0;
     int nextY = 0;
     int dieSizeX = (side == 0)?TopDie.upperRightX:BottomDie.upperRightX;
-    int dieSizeY = (side == 0)?TopDie.upperRightY:BottomDie.upperRightY;
+    //int dieSizeY = (side == 0)?TopDie.upperRightY:BottomDie.upperRightY;
     for(int i=0;i<instanceCount;i++){
         if(PartitionResult[i] == side){
             if(Instances[i].LibCellptr->libCellSizeX + startX < dieSizeX){
@@ -1144,7 +1144,7 @@ void Data::terminalPlacement(){
 
 bool Data::needTerminal(int in){
     int prev = -1;
-    for(int i=0;i<Nets[in].instName.size();i++){
+    for(size_t i=0;i<Nets[in].instName.size();i++){
         char _;
         int idx;
         stringstream ss(Nets[in].instName[i]);
@@ -1161,7 +1161,7 @@ bool Data::needTerminal(int in){
 }
 
 void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min){
-    for(int i=0;i<Nets[in].instName.size();i++){
+    for(size_t i=0;i<Nets[in].instName.size();i++){
         char _;
         int idx, PinIdx;
         stringstream ss(Nets[in].instName[i]);
@@ -1191,7 +1191,7 @@ void Data::getNetExtreme(int in, int& x_max, int& x_min, int& y_max, int& y_min)
 }
 
 void Data::getNetExtremeConsiderSide(int in, int& x_max, int& x_min, int& y_max, int& y_min, int side){
-    for(int i=0;i<Nets[in].instName.size();i++){        
+    for(size_t i=0;i<Nets[in].instName.size();i++){        
         char _;
         int idx, PinIdx;
         stringstream ss(Nets[in].instName[i]);

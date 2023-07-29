@@ -112,8 +112,8 @@ void TerminalPlacement::makePlFile(string file_name){
     for(int i=0;i<NumTerminal;i++){
         int x = (NetExtreme[i][0] + NetExtreme[i][1]) / 2;
         int y = (NetExtreme[i][2] + NetExtreme[i][3]) / 2;
-        int w = (NetExtreme[i][1] - NetExtreme[i][0]);
-        int h = (NetExtreme[i][3] - NetExtreme[i][2]);
+        // int w = (NetExtreme[i][1] - NetExtreme[i][0]);
+        // int h = (NetExtreme[i][3] - NetExtreme[i][2]);
         // cout<<"shift"<<endl;
         // if(w != 0)
         //     x = x + (random()%(w/2) - w);

@@ -732,9 +732,9 @@ void Data::legalizePartion(){
             // cout << "----------------------------------------------------" << endl;
             auto currentTime = chrono::steady_clock::now();
             auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
-            if (elapsedTime >= timeLimitInSeconds) {
-            break;
-            }
+            // if (elapsedTime >= timeLimitInSeconds) {
+            //     break;
+            // }
     }
 
     cout << "-------------Legalize Result-------------------" << endl;

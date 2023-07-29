@@ -31,5 +31,6 @@ int main(int argc, char *argv[]){
     D.terminalPlacement();
     // D.printCost();
     D.output(argv[2]);
+    system("rm -rf *.hgr *.part.2 *.pl *.plt placementT/ placement/");
     return 0;
 }

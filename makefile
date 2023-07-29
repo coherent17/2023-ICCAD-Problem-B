@@ -67,6 +67,6 @@ check:
 	$(CHECKCC) $(CHECKFLAGS) ./$(TARGET) Testcase/ProblemB_case2.txt Testcase/ProblemB_case2_result.txt > ckeck.log
 
 clean:
-	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log* placement/ *.pl *.plt placementT/
+	rm -rf $(OBJDIR) $(TARGET) *.hgr *.part.2 *.txt *.out *.in log* placement/ *.pl *.plt placementT/ Testcase/*result*
 
 .PHONY: all clean

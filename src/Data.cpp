@@ -373,8 +373,9 @@ void Data::GenerateFixPart(int8_t option){
             }
             else{
                 if(option & STD_CELL_RANDOM_ASSIGN){
-                    double Rand_Prob = static_cast<double>(std::rand()) / RAND_MAX * 0.5;
+                    double Rand_Prob = static_cast<double>(std::rand()) / RAND_MAX;
                     double Cmp = static_cast<double>(std::rand()) / RAND_MAX;
+                    cout << Cmp << " " << Rand_Prob << endl;
                     if(Cmp < Rand_Prob){
                         if(BottomDieRemainArea > TopDieRemainArea){
                             BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
@@ -406,25 +407,50 @@ void Data::GenerateFixPart(int8_t option){
                 if(technologyCount == 2){
                     bool placeWhere = 0;
                     placeWhere = TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea < BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea ? PARTITION_TOP : PARTITION_BOTTOM;
+                    int randomNumber = std::rand() % 100 + 1;
                     if(placeWhere == PARTITION_TOP){
                         if(TopDieRemainArea > TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
-                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                            fprintf(FixPart, "%d\n", 0);
+                            if(randomNumber <= 10){
+                                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 1);
+                            }
+                            else{
+                                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 0);
+                            }
                         }
                         else{
-                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                            fprintf(FixPart, "%d\n", 1);
+                            if(randomNumber <= 40){
+                                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 0);
+                            }
+                            else{
+                                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 1);
+                            }
                         }
                     }
 
                     else{
                         if(BottomDieRemainArea > BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea){
-                            BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                            fprintf(FixPart, "%d\n", 1);
+                            if(randomNumber <= 20){
+                                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 0);
+                            }
+                            else{
+                                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 1);
+                            }
                         }
                         else{
-                            TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
-                            fprintf(FixPart, "%d\n", 0);
+                            if(randomNumber <= 20){
+                                BottomDieRemainArea -= BottomDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 1);
+                            }
+                            else{
+                                TopDieRemainArea -= TopDie.DieTech->LibCells[Instances[i].libCellName_int - 1].libCellArea;
+                                fprintf(FixPart, "%d\n", 0);
+                            }
                         }
                     }
                 }
@@ -517,13 +543,15 @@ void Data::Partition(string input_filename, bool *isValidPartition, int8_t optio
 
     //weighted graph with fix partition generate by not considering greedy choice about the area
     else if((option & WEIGHTED) && (option & FIX_PARTITION) && !(option & GREEDY_FIX)){
+        system("rm FixPart.hgr");
         GenerateFixPart(option);
         system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 5 > /dev/null");
     }
 
     else if((option & WEIGHTED) && (option & FIX_PARTITION) && (option & GREEDY_FIX)){
+        system("rm FixPart.hgr");
         GenerateFixPart(option);
-        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 5 > /dev/null");
+        system("./lib/hmetis/shmetis Weighted_Graph.hgr FixPart.hgr 2 10 > /dev/null");
     }
     else abort();   //there is no way to reach here
 
@@ -559,7 +587,7 @@ void Data::PartitionUntilFindSolution(){
     }
 
     //for case 2 and 3 is good
-    for(int i = 0; i < 2; i++){
+    for(int i = 0; i < 20; i++){
         cout << "Execution Partition " << i << endl;
         Partition(input_filename, &isValidPartition, WEIGHTED | FIX_PARTITION | STD_CELL_RANDOM_ASSIGN | GREEDY_FIX);
         if(isValidPartition) return;
@@ -612,6 +640,8 @@ void Data::legalizePartion(){
     double maxNumOfTerminal = int((TopDie.upperRightX - HybridTerminal.spacing) / (HybridTerminal.sizeX + HybridTerminal.spacing))
                             * int((TopDie.upperRightY - HybridTerminal.spacing) / (HybridTerminal.sizeY + HybridTerminal.spacing));
 
+    auto startTime = chrono::steady_clock::now();
+    const int timeLimitInSeconds = 5;
     while(TopDieArea > TopDieMaxSize || BottomDieArea > BottomDieMaxSize || (NumTerminals > maxNumOfTerminal )){
         int idx = rand() % instanceCount;
         cout << "select instance : " << idx << endl;
@@ -696,10 +726,15 @@ void Data::legalizePartion(){
                 }
             }
         }
-            cout << "-------------Legalize Result-------------------" << endl;
-            cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength) / double(TopDie.rowHeight) / double(TopDie.repeatCount) * 100.0 << endl;
-    cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength)  / double(BottomDie.rowHeight) / double(BottomDie.repeatCount) * 100.0 << endl;
-    cout << "----------------------------------------------------" << endl;
+            // cout << "-------------Legalize Result-------------------" << endl;
+            // cout << "TopDie Partition Summary: (" << TopDieArea << "/" <<  TopDieMaxSize << ") " << TopDieArea / double(TopDie.rowLength) / double(TopDie.rowHeight) / double(TopDie.repeatCount) * 100.0 << endl;
+            // cout << "BottomDie Partition Summary: (" << BottomDieArea << "/" <<  BottomDieMaxSize << ") " << BottomDieArea / double(BottomDie.rowLength)  / double(BottomDie.rowHeight) / double(BottomDie.repeatCount) * 100.0 << endl;
+            // cout << "----------------------------------------------------" << endl;
+            auto currentTime = chrono::steady_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime).count();
+            if (elapsedTime >= timeLimitInSeconds) {
+            break;
+            }
     }
 
     cout << "-------------Legalize Result-------------------" << endl;

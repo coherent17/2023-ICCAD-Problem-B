@@ -34,8 +34,8 @@ getCase:
 	mkdir -p Testcase
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case1_0522.txt
 	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case2.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3_20230720.txt
-	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_20230720.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case3_20230816.txt
+	wget -P Testcase http://iccad-contest.org/Document/Problems/Testcase/ProblemB_case4_20230816.txt
 
 .PHONY: getCase
 
